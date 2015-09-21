@@ -873,6 +873,13 @@ EX_D1   MOVE.B  D5,D0             Put current register number in D0
         BRA     NEWLINE           Newline and return 
 * 
 ************************************************************************* 
+
+HELP     LEA.L    JUMPHELP,A4
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         RTS
+         
+*************************************************************************
 * 
 *  Exception handling routines 
 * 
@@ -991,13 +998,6 @@ TRACE    EQU     *                   TRACE exception (rudimentary version)
          BRA     WARM                Return to monitor 
 * 
 ************************************************************************* 
-*Adding the logon command*
-
-LOGON   LEA.L   ERMES1(PC),A4       Else point to error message, 
-        BRA     PSTRING             print it and return 
-
-
-*************************************************************************
 *  Breakpoint routines: BR_GET gets the address of a breakpoint and 
 *  puts it in the breakpoint table. It does not plant it in the code. 
 *  BR_SET plants all breakpoints in the code. NOBR removes one or all 
@@ -1161,6 +1161,7 @@ ERMES4   DC.B     'Table full  ',0,0
 ERMES5   DC.B     'Breakpoint not active   ',0,0 
 ERMES6   DC.B     'Uninitialized exception ',0,0 
 ERMES7   DC.B     ' Range error',0
+JUMPHELP DC.B     'JUMP <address> causes execution to begin at <address>',0
 LOGONMES1 DC.B     'ENTER USERNAME: ',0 
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
@@ -1207,9 +1208,9 @@ COMTAB   DC.B     4,4              JUMP <address> causes execution to
          DC.B    4,3               REG <reg> <value> loads <value> 
          DC.B    'REG '            into <reg> in TASK_T. Used to preset 
          DC.L    REG_MOD-COMTAB    registers before a GO or GB 
-         DC.B    4,2
-         DC.B    'LOGON'
-         DC.L    LOGON-COMTAB
+         DC.B    4,4               REG <reg> <value> loads <value> 
+         DC.B    'HELP'            into <reg> in TASK_T. Used to preset 
+         DC.L    HELP-COMTAB       registers before a GO or GB
          DC.B    0,0 
 * 
 ************************************************************************* 
@@ -1257,6 +1258,7 @@ DCB4     DC.B    'AUX_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
 
 
 
