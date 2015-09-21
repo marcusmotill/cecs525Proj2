@@ -14,7 +14,7 @@ CTRL_A   EQU      $01               Control_A forces return to monitor
 STACK    EQU      $4400             Stack_pointer
 ACIA_1   EQU      $8001             Console ACIA control 
 ACIA_2   EQU      ACIA_1            Auxilary ACIA control 
-X_BASE   EQU      $4000             Start of exception vector table 
+*X_BASE   EQU      $4000             Start of exception vector table 
 TRAP_14  EQU      $4E4E             Code for TRAP #14 
 MAXCHR   EQU      64                Length of input line buffer  
 * 
@@ -48,7 +48,7 @@ RESET:   EQU      *
          CLR.B    ECHO(A6)          Set automatic character echo 
          CLR.B    U_CASE(A6)        Clear case conversion flag (UC<-LC) 
          BSR.S    SETACIA           Setup ACIAs 
-	 BSR.L	  X_SET		    what change did i do here
+	     BSR.L	  B_CLR		    what change did i do here
          BSR.L    SET_DCB           Setup DCB table in RAM
          BSR.S    NEWLINE
          LEA.L    BANNER(PC),A4    
@@ -66,11 +66,11 @@ RESET:   EQU      *
 	 LEA.L	  ADDRE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-         MOVE.L   #$3000,A0         A0 points to extension ROM 
-         MOVE.L   (A0),D0           Read first longword in extension ROM 
-         CMP.L    #'ROM2',D0        If extension begins with 'ROM2' then 
-         BNE.S    NO_EXT            call the subroutine at EXT_ROM+8 
-         JSR      8(A0)             else continue 
+*         MOVE.L   #$3000,A0         A0 points to extension ROM 
+*         MOVE.L   (A0),D0           Read first longword in extension ROM 
+*         CMP.L    #'ROM2',D0        If extension begins with 'ROM2' then 
+*         BNE.S    NO_EXT            call the subroutine at EXT_ROM+8 
+*         JSR      8(A0)             else continue 
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine 
 WARM:    CLR.L    D7                Warm entry point - clear error flag 
@@ -87,7 +87,7 @@ WARM:    CLR.L    D7                Warm entry point - clear error flag
 SETACIA  EQU      *                 Setup ACIA parameters 
          LEA.L    ACIA_1,A0         A0 points to console ACIA 
          MOVE.B   #$03,(A0)         Reset ACIA1 
-         MOVE.B   #$03,1(A0)        Reset ACIA2 
+*         MOVE.B   #$03,1(A0)        Reset ACIA2 
          MOVE.B   #$19,(A0)         Set up ACIA1 constants (no IRQ, 
          MOVE.B   #$19,1(A0)        RTS* low, 8 bit, no parity, 1 stop) 
          RTS                        Return 
@@ -374,7 +374,7 @@ ADR_DAT  MOVE.L   D0,-(A7)          Print the contents of A3 and the
          RTS 
 * 
 PSPACE   MOVE.B   D0,-(A7)          Print a single space 
-         MOVE.B   #SPACE,D0 
+         MOVE.B   #SPACE,D0
          BSR      PUTCHAR 
          MOVE.B   (A7)+,D0 
          RTS 
@@ -459,8 +459,7 @@ LOAD7    BSR.S    LOAD8             Get byte of data for loading
 LOAD8    BSR     BYTE               Get a byte 
          ADD.B   D0,D3              Update checksum 
          RTS                         and return 
-* 
-************************************************************************* 
+*************************************************************************** 
 * 
 *  DUMP   Transmit S1 formatted records to host computer 
 *         A3 = Starting address of data block 
@@ -477,7 +476,7 @@ DUMP1    CMP.L    A3,D0             Compare start and end addresses
          LEA.L    ERMES7(PC),A4     Else print error message 
          BRA      PSTRING           and return 
 DUMP2    MOVE.L   CN_OVEC(A6),-(A7) Save name of current output device 
-         MOVE.L   #DCB4,CN_OVEC(A6) Set up Port 2 as output device 
+*         MOVE.L   #DCB4,CN_OVEC(A6) Set up Port 2 as output device 
          BSR      NEWLINE           Send newline to host and wait 
          BSR.S    DELAY 
          MOVE.L   BUFFPT(A6),A4     Before dumping, send any string 
@@ -544,21 +543,21 @@ DELAY1   SUB.L     #1,D0            Count down         (8 clk cycles)
 *  the host processor until escape sequence entered). End sequence 
 *  = ESC, E. A newline is sent to the host to "clear it down". 
 * 
-TM       MOVE.B    #$55,ACIA_1      Force RTS* high to re-route data 
-         ADD.B     #1,ECHO(A6)      Turn off character echo 
-TM1      BSR       GETCHAR          Get character 
-         CMP.B     #ESC,D0          Test for end of TM mode 
-         BNE       TM1              Repeat until first escape character 
-         BSR       GETCHAR          Get second character 
-         CMP.B     #'E',D0          If second char = E then exit TM 
-         BNE       TM1              Else continue 
-         MOVE.L    CN_OVEC(A6),-(A7) Save output port device name 
-         MOVE.L    #DCB4,CN_OVEC(A6) Get name of host port (aux port) 
-         BSR       NEWLINE          Send newline to host to clear it 
-         MOVE.L    (A7)+,CN_OVEC(A6) Restore output device port name 
-         CLR.B     ECHO(A6)         Restore echo mode 
-         MOVE.B    #$15,ACIA_1      Restore normal ACIA mode (RTS* low) 
-         RTS 
+*TM       MOVE.B    #$55,ACIA_1      Force RTS* high to re-route data 
+*         ADD.B     #1,ECHO(A6)      Turn off character echo 
+*TM1      BSR       GETCHAR          Get character 
+*         CMP.B     #ESC,D0          Test for end of TM mode 
+*         BNE       TM1              Repeat until first escape character 
+*         BSR       GETCHAR          Get second character 
+*         CMP.B     #'E',D0          If second char = E then exit TM 
+*         BNE       TM1              Else continue 
+*         MOVE.L    CN_OVEC(A6),-(A7) Save output port device name 
+*         MOVE.L    #DCB4,CN_OVEC(A6) Get name of host port (aux port) 
+*         BSR       NEWLINE          Send newline to host to clear it 
+*         MOVE.L    (A7)+,CN_OVEC(A6) Restore output device port name 
+*         CLR.B     ECHO(A6)         Restore echo mode 
+*         MOVE.B    #$15,ACIA_1      Restore normal ACIA mode (RTS* low) 
+*         RTS 
 * 
 ************************************************************************* 
 * 
@@ -569,7 +568,7 @@ TM1      BSR       GETCHAR          Get character
 SET_DCB  MOVEM.L A0-A3/D0-D3,-(A7) Save all working registers 
          LEA.L   FIRST(A6),A0    Pointer to first DCB destination in RAM 
          LEA.L   DCB_LST(PC),A1  A1 points to DCB info block in ROM 
-         MOVE.W  #5,D0           6 DCBs to set up 
+         MOVE.W  #3,D0           4 DCBs to set up 
 ST_DCB1  MOVE.W  #15,D1          16 bytes to move per DCB header 
 ST_DCB2  MOVE.B  (A1)+,(A0)+     Move the 16 bytes of a DCB header 
          DBRA    D1,ST_DCB2      from ROM to RAM 
@@ -706,17 +705,17 @@ PUTCHAR  MOVE.L  A0,-(A7)        Save working register
 *  which input data from and output data to a buffer in RAM. These are 
 *  used by DCB5 and DCB6, respectively. 
 * 
-BUFF_IN  LEA.L   12(A0),A1       A1 points to I/P buffer 
-         MOVE.L  (A1),A2         A2 gets I/P pointer from buffer 
-         MOVE.B  -(A2),D0        Read char from buffer and adjust A2 
-         MOVE.L  A2,(A1)         Restore pointer in buffer 
-         RTS 
+*BUFF_IN  LEA.L   12(A0),A1       A1 points to I/P buffer 
+*         MOVE.L  (A1),A2         A2 gets I/P pointer from buffer 
+*         MOVE.B  -(A2),D0        Read char from buffer and adjust A2 
+*         MOVE.L  A2,(A1)         Restore pointer in buffer 
+*         RTS 
 * 
-BUFF_OT  LEA.L   12(A0),A1       A1 points to O/P buffer 
-         MOVE.L  4(A1),A2        A2 gets O/P pointer from buffer 
-         MOVE.B  D0,(A2)+        Store char in buffer and adjust A2 
-         MOVE.L  A2,(A1)         Restore pointer in buffer 
-         RTS 
+*BUFF_OT  LEA.L   12(A0),A1       A1 points to O/P buffer 
+*         MOVE.L  4(A1),A2        A2 gets O/P pointer from buffer 
+*         MOVE.B  D0,(A2)+        Store char in buffer and adjust A2 
+*         MOVE.L  A2,(A1)         Restore pointer in buffer 
+*         RTS 
 * 
 ************************************************************************* 
 * 
@@ -750,85 +749,86 @@ OPEN4    MOVEM.L  (A7)+,A1-A3/D0-D4 Restore working registers
 *  Exception vector table initialization routine 
 *  All vectors not setup are loaded with uninitialized routine vector 
 * 
-X_SET   MOVE.W  #7,D0             Now clear the breakpoint table 
-        LEA.L   BP_TAB(A6),A0     Point to table 
-X_SET2  CLR.L   (A0)+             Clear an address entry 
-        CLR.W   (A0)+             Clear the corresponding data 
-        DBRA    D0,X_SET2         Repeat until all 8 cleared 
+B_CLR   MOVE.W  #7,D0             Now clear the breakpoint table 
+        LEA.L   BP_TAB(A6),A0     Point to table
         RTS 
+*X_SET2  CLR.L   (A0)+             Clear an address entry 
+*        CLR.W   (A0)+             Clear the corresponding data 
+*        DBRA    D0,X_SET2         Repeat until all 8 cleared 
+*        RTS 
 * 
 ************************************************************************* 
 * 
-TRAP_0  EQU     *                 User links to  TS2BUG via TRAP #0 
-FUNC0   CMP.B   #0,D1             D1 = 0 = Get character 
-        BNE.S   FUNC1           
-        BSR     GETCHAR 
-        RTE 
-FUNC1   CMP.B   #1,D1             D1 = 1 = Print character 
-        BNE.S   FUNC2 
-        BSR     PUTCHAR 
-        RTE 
-FUNC2   CMP.B   #2,D1             D1 = 2 = Newline 
-        BNE.S   FUNC3 
-        BSR     NEWLINE 
-        RTE 
-FUNC3   CMP.B   #3,D1             D1 = 3 = Get parameter from buffer 
-        BNE.S   FUNC4 
-        BSR     PARAM 
-        RTE 
-FUNC4   CMP.B   #4,D1             D1 = 4 = Print string pointed at by A4 
-        BNE.S   FUNC5 
-        BSR     PSTRING 
-        RTE 
-FUNC5   CMP.B   #5,D1             D1 = 5 = Get a hex character 
-        BNE.S   FUNC6 
-        BSR     HEX 
-        RTE 
-FUNC6   CMP.B   #6,D1             D1 = 6 = Get a hex byte 
-        BNE.S   FUNC7 
-        BSR     BYTE 
-        RTE 
-FUNC7   CMP.B   #7,D1             D1 = 7 = Get a word 
-        BNE.S   FUNC8 
-        BSR     WORD 
-        RTE 
-FUNC8   CMP.B   #8,D1             D1 = 8 = Get a longword 
-        BNE.S   FUNC9 
-        BSR     LONGWD 
-        RTE 
-FUNC9   CMP.B   #9,D1             D1 = 9 = Output hex byte 
-        BNE.S   FUNC10  
-        BSR     OUT2X 
-        RTE 
-FUNC10  CMP.B   #10,D1            D1 = 10 = Output hex word 
-        BNE.S   FUNC11 
-        BSR     OUT4X 
-        RTE 
-FUNC11  CMP.B   #11,D1            D1 = 11 = Output hex longword 
-        BNE.S   FUNC12 
-        BSR     OUT8X 
-        RTE 
-FUNC12  CMP.B   #12,D1            D1 = 12 = Print a space 
-        BNE.S   FUNC13 
-        BSR     PSPACE 
-        RTE 
-FUNC13  CMP.B   #13,D1            D1 = 13 = Get a line of text into 
-        BNE.S   FUNC14            the line buffer 
-        BSR     GETLINE 
-        RTE 
-FUNC14  CMP.B   #14,D1            D1 = 14 = Tidy up the line in the 
-        BNE.S   FUNC15            line buffer by removing leading 
-        BSR     TIDY              leading and multiple embeded spaces 
-        RTE 
-FUNC15  CMP.B   #15,D1            D1 = 15 = Execute the command in 
-        BNE.S   FUNC16            the line buffer 
-        BSR     EXECUTE 
-        RTE 
-FUNC16  CMP.B   #16,D1            D1 = 16 = Call RESTORE to transfer 
-        BNE.S   FUNC17            the registers in TSK_T to the 68000 
-        BSR     RESTORE           and therefore execute a program 
-        RTE 
-FUNC17  RTE 
+*TRAP_0  EQU     *                 User links to  TS2BUG via TRAP #0 
+*FUNC0   CMP.B   #0,D1             D1 = 0 = Get character 
+*        BNE.S   FUNC1           
+*        BSR     GETCHAR 
+*        RTE 
+*FUNC1   CMP.B   #1,D1             D1 = 1 = Print character 
+*        BNE.S   FUNC2 
+*        BSR     PUTCHAR 
+*        RTE 
+*FUNC2   CMP.B   #2,D1             D1 = 2 = Newline 
+*        BNE.S   FUNC3 
+*        BSR     NEWLINE 
+*        RTE 
+*FUNC3   CMP.B   #3,D1             D1 = 3 = Get parameter from buffer 
+*        BNE.S   FUNC4 
+*        BSR     PARAM 
+*        RTE 
+*FUNC4   CMP.B   #4,D1             D1 = 4 = Print string pointed at by A4 
+*        BNE.S   FUNC5 
+*        BSR     PSTRING 
+*        RTE 
+*FUNC5   CMP.B   #5,D1             D1 = 5 = Get a hex character 
+*        BNE.S   FUNC6 
+*        BSR     HEX 
+*        RTE 
+*FUNC6   CMP.B   #6,D1             D1 = 6 = Get a hex byte 
+*        BNE.S   FUNC7 
+*        BSR     BYTE 
+*        RTE 
+*FUNC7   CMP.B   #7,D1             D1 = 7 = Get a word 
+*        BNE.S   FUNC8 
+*        BSR     WORD 
+*        RTE 
+*FUNC8   CMP.B   #8,D1             D1 = 8 = Get a longword 
+*        BNE.S   FUNC9 
+*        BSR     LONGWD 
+*        RTE 
+*FUNC9   CMP.B   #9,D1             D1 = 9 = Output hex byte 
+*        BNE.S   FUNC10  
+*        BSR     OUT2X 
+*        RTE 
+*FUNC10  CMP.B   #10,D1            D1 = 10 = Output hex word 
+*        BNE.S   FUNC11 
+*        BSR     OUT4X 
+*        RTE 
+*FUNC11  CMP.B   #11,D1            D1 = 11 = Output hex longword 
+*        BNE.S   FUNC12 
+*        BSR     OUT8X 
+*        RTE 
+*FUNC12  CMP.B   #12,D1            D1 = 12 = Print a space 
+*        BNE.S   FUNC13 
+*        BSR     PSPACE 
+*        RTE 
+*FUNC13  CMP.B   #13,D1            D1 = 13 = Get a line of text into 
+*        BNE.S   FUNC14            the line buffer 
+*        BSR     GETLINE 
+*        RTE 
+*FUNC14  CMP.B   #14,D1            D1 = 14 = Tidy up the line in the 
+*        BNE.S   FUNC15            line buffer by removing leading 
+*        BSR     TIDY              leading and multiple embeded spaces 
+*        RTE 
+*FUNC15  CMP.B   #15,D1            D1 = 15 = Execute the command in 
+*        BNE.S   FUNC16            the line buffer 
+*        BSR     EXECUTE 
+*        RTE 
+*FUNC16  CMP.B   #16,D1            D1 = 16 = Call RESTORE to transfer 
+*        BNE.S   FUNC17            the registers in TSK_T to the 68000 
+*        BSR     RESTORE           and therefore execute a program 
+*        RTE 
+*FUNC17  RTE 
 * 
 ************************************************************************* 
 * 
@@ -1159,6 +1159,7 @@ ERMES7   DC.B     ' Range error',0
 *         a string length + number of characters to match + the string 
 *         plus the address of the command relative to COMTAB 
 * 
+         ORG      $2000
 COMTAB   DC.B     4,4              JUMP <address> causes execution to 
          DC.B     'JUMP'           begin at <address> 
          DC.L     JUMP-COMTAB                                           
@@ -1166,14 +1167,14 @@ COMTAB   DC.B     4,4              JUMP <address> causes execution to
          DC.B     'MEMORY  '       <address> and allows them to be changed 
          DC.L     MEMORY-COMTAB 
          DC.B     4,2              LOAD <string> loads S1/S2 records 
-         DC.B     'LOAD'           from the host. <string> is sent to host 
-         DC.L     LOAD-COMTAB 
+         DC.B     'LOAD'           from the host. <string> is sent to host
+         DC.L     LOAD-COMTAB  
          DC.B     4,2              DUMP <string> sends S1 records to the 
          DC.B     'DUMP'           host and is preceeded by <string>. 
          DC.L     DUMP-COMTAB 
-         DC.B     4,3              TRAN enters the transparant mode 
-         DC.B     'TRAN'           and is exited by ESC,E. 
-         DC.L     TM-COMTAB 
+*         DC.B     4,3              TRAN enters the transparant mode 
+*         DC.B     'TRAN'           and is exited by ESC,E. 
+*         DC.L     TM-COMTAB 
          DC.B     4,2              NOBR <address> removes the breakpoint 
          DC.B     'NOBR'           at <address> from the BP table. If 
          DC.L     NOBR-COMTAB      no address is given all BPs are removed. 
@@ -1201,7 +1202,7 @@ COMTAB   DC.B     4,4              JUMP <address> causes execution to
          DC.B    0,0 
 * 
 ************************************************************************* 
-* 
+** 
 *  This is a list of the information needed to setup the DCBs 
 * 
 DCB_LST  EQU     * 
@@ -1217,12 +1218,12 @@ DCB3     DC.B    'AUX_IN  '
 DCB4     DC.B    'AUX_OUT ' 
          DC.L    AUX_OUT,ACIA_2 
          DC.W    2 
-DCB5     DC.B    'BUFF_IN ' 
-         DC.L    BUFF_IN,BUFFER 
-         DC.W    2 
-DCB6     DC.B    'BUFF_OUT' 
-         DC.L    BUFF_OT,BUFFER 
-         DC.W    2 
+*DCB5     DC.B    'BUFF_IN ' 
+*         DC.L    BUFF_IN,BUFFER 
+*         DC.W    2 
+*DCB6     DC.B    'BUFF_OUT' 
+*         DC.L    BUFF_OT,BUFFER 
+*         DC.W    2 
 * 
 ************************************************************************* 
 * 
@@ -1245,3 +1246,9 @@ DCB6     DC.B    'BUFF_OUT'
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
+
+*~Font name~Courier New~
+*~Font size~14~
+*~Tab type~1~
+*~Tab size~4~
