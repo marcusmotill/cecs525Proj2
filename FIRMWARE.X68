@@ -1159,10 +1159,10 @@ ERMES7   DC.B     ' Range error',0
 *         a string length + number of characters to match + the string 
 *         plus the address of the command relative to COMTAB 
 * 
-COMTAB   DC.B     4,4              JUMP <address> causes execution to 
+COMTAB   DC.B     5,4              JUMP <address> causes execution to 
          DC.B     'JUMP'           begin at <address> 
          DC.L     JUMP-COMTAB                                           
-         DC.B     8,3              MEMORY <address> examines contents of 
+         DC.B     6,3              MEMORY <address> examines contents of 
          DC.B     'MEMORY  '       <address> and allows them to be changed 
          DC.L     MEMORY-COMTAB 
          DC.B     4,2              LOAD <string> loads S1/S2 records 
@@ -1245,3 +1245,7 @@ DCB6     DC.B    'BUFF_OUT'
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+*~Font name~Courier New~
+*~Font size~10~
+*~Tab type~1~
+*~Tab size~4~
