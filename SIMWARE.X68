@@ -853,25 +853,47 @@ HELP     LEA.L    JUMPHELP,A4
          RTS
          
 *************************************************************************
-LOGIN    BSR      GETLINE
+LOGIN    LEA.L    LOGINM1,A4
+         BSR.W    PSTRING           
+         BSR.W    NEWLINE
+         BSR      GETLINE
          LEA.L    UNAME,A4
-LOGIN1   MOVE.B   (A1)+,D7
-         CMP.B    (A4)+,D7
+LOGIN1   MOVE.B   (A1)+,D5
+         CMP.B    (A4)+,D5
          BEQ      LOGIN1            iterate through checking each char
          CMP.B    #CR,-(A1)          check for carriage return
          BNE      WRONG             if not then wrong input
          CMP.B    #NUL,-(A4)            check for end of stored string
          BNE      WRONG             if not then wrong input
-         LEA.L    USRSUC,A4
-         BRA      PSTRING
-
-         LEA.L    LOGINM1,A4
-         BSR.W    PSTRING           hello
+         LEA.L    USRSUC,A4         print success
+         BSR.W    PSTRING
          BSR.W    NEWLINE
-         RTS
+         LEA.L    LOGINM2,A4
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         BSR.W    GETLINE
+         LEA.L    PWORD,A4
+LOGIN2   MOVE.B   (A1)+,D5
+         CMP.B    (A4)+,D5
+         BEQ      LOGIN2            iterate through checking each char
+         CMP.B    #CR,-(A1)          check for carriage return
+         BNE      WRONG             if not then wrong input
+         CMP.B    #NUL,-(A4)            check for end of stored string
+         BNE      WRONGPW             if not then wrong input
+         LEA.L    PWSUC,A4
+         BRA      PSTRING
+         LEA.L    LOGINM1,A4
+         BSR.W    PSTRING           print success
+         BSR.W    NEWLINE
+
+
 
 WRONG    LEA.L    USRERR,A4   
          BRA      PSTRING
+
+WRONGPW  LEA.L    PWERR,A4   
+         BRA      PSTRING
+
 
 UPASS    LEA.L    USRSUC,A4
          BRA      PSTRING  
@@ -1162,8 +1184,11 @@ ERMES7   DC.B     ' Range error',0
 UNAME    DC.B     'USER', 0
 PWORD    DC.B     'PASSWORD',0
 LOGINM1  DC.B     'Enter username: ', 0
+LOGINM2  DC.B     'Enter password: ', 0
 USRERR   DC.B     'Incorrect username', 0
 USRSUC   DC.B     'Correct Username', 0
+PWERR   DC.B     'Incorrect password', 0
+PWSUC    DC.B     'Correct Password', 0
  
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
@@ -1259,6 +1284,7 @@ DCB6     DC.B    'BUFF_OUT'
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
 
 
 
