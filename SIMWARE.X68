@@ -1,10 +1,11 @@
 *        TSBUG2 - 68000 monitor - version of 05 January 2010 
 
-	 ORG      $0
+    ORG      $0
          DC.L     STACK,RESET
 *                                   Symbol equates 
 BS       EQU      $08               Back_space 
 CR       EQU      $0D               Carriage_return 
+NUL      EQU      $00               NUL character
 LF       EQU      $0A               Line_feed 
 SPACE    EQU      $20               Space 
 WAIT     EQU      'W'               Wait character (to suspend output) 
@@ -43,26 +44,26 @@ BUFFER   DS.B     256               256 bytes for I/O buffer
          ORG      $1000             Monitor Origin
 RESET:   EQU      *
          LEA.L    DATA,A6           A6 points to data area 
-	 MOVE.L	  A6,TSK_T+56(A6)   initialize A6 in the regster Frame
+    MOVE.L    A6,TSK_T+56(A6)   initialize A6 in the regster Frame
          CLR.L    UTAB(A6)          Reset pointer to user extension table 
          MOVE.B   #1,ECHO(A6)       Set automatic character echo 
          CLR.B    U_CASE(A6)        Clear case conversion flag (UC<-LC) 
-	 BSR.L	  X_SET		    what change did i do here
+    BSR.L     X_SET         what change did i do here
          BSR.L    SET_DCB           Setup DCB table in RAM
          BSR.S    NEWLINE
          LEA.L    BANNER(PC),A4    
          BSR.S    PSTRING
          BSR.S    NEWLINE           
-	 LEA.L	  MODIFY(PC),A4
+    LEA.L     MODIFY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-	 LEA.L	  WHY(PC),A4
+    LEA.L     WHY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-	 LEA.L	  WHERE(PC),A4
+    LEA.L     WHERE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-	 LEA.L	  ADDRE(PC),A4
+    LEA.L     ADDRE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
          MOVE.L   #$3000,A0         A0 points to extension ROM 
@@ -73,6 +74,7 @@ RESET:   EQU      *
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine 
 WARM:    CLR.L    D7                Warm entry point - clear error flag 
+         JSR      LOGIN
          BSR.S    NEWLINE           Print a newline 
          BSR.S    GETLINE           Get a command line 
          BSR      TIDY              Tidy up input buffer contents 
@@ -167,7 +169,7 @@ TIDY6    MOVE.L   A0,BUFFPT(A6)     Update buffer pointer
 * 
 *  EXECUTE matches the first command in the line buffer with the 
 *  commands in a command table. An external table pointed at by 
-*  UTAB is searched first and then the in-built table, COMTAB. 
+*  UTAB is searched first and then the built-in table, COMTAB. 
 * 
 EXECUTE  TST.L    UTAB(A6)          Test pointer to user table 
          BEQ.S    EXEC1             If clear then try built-in table 
@@ -596,12 +598,12 @@ IO_REQ   MOVEM.L A0-A1,-(A7)     Save working registers
 *  CON_IN handles input from the console device 
 *  Exit with input in D0 
 * 
-CON_IN   MOVEM.L D1,-(A7)     	 Save working registers 
-	 CLR.B	 19(A0)
-         MOVE.B	 #5,D0	      	 Read input from ACIA
-	 TRAP 	 #15
-	 MOVE.B  D1,D0
-         MOVEM.L (A7)+,D1     `	 Restore working registers 
+CON_IN   MOVEM.L D1,-(A7)         Save working registers 
+    CLR.B    19(A0)
+         MOVE.B    #5,D0             Read input from ACIA
+    TRAP     #15
+    MOVE.B  D1,D0
+         MOVEM.L (A7)+,D1     `   Restore working registers 
          RTS 
 * 
 ************************************************************************* 
@@ -609,10 +611,10 @@ CON_IN   MOVEM.L D1,-(A7)     	 Save working registers
 *   This is the CON_OUT device driver. Output in D0  
 * 
 CON_OUT  MOVEM.L D1,-(A7)  Save working registers 
-	 CLR.B	 19(A0)
-         MOVE.B	 D0,D1
-         MOVE.B	 #6,D0
-         TRAP	 #15
+    CLR.B    19(A0)
+         MOVE.B    D0,D1
+         MOVE.B    #6,D0
+         TRAP   #15
          MOVEM.L (A7)+,D1  Restore working registers 
          RTS 
 * 
@@ -655,7 +657,7 @@ GETCHAR  MOVE.L  A0,-(A7)        Save working register
          AND.B   #%11011111,D0   Else clear bit 5 for upper case conv 
 GETCH2   TST.B   ECHO(A6)        Do we need to echo the input? 
          BNE.S   GETCH3          If ECHO not zero then no echo 
-	 BSR.S   PUTCHAR         Else echo the input 
+    BSR.S   PUTCHAR         Else echo the input 
 GETCH3   MOVE.L  (A7)+,A0        Restore working register 
          RTS                     and return 
 * 
@@ -850,6 +852,30 @@ HELP     LEA.L    JUMPHELP,A4
          BSR.W    NEWLINE
          RTS
          
+*************************************************************************
+LOGIN    BSR      GETLINE
+         LEA.L    UNAME,A4
+LOGIN1   MOVE.B   (A1)+,D7
+         CMP.B    (A4)+,D7
+         BEQ      LOGIN1            iterate through checking each char
+         CMP.B    #CR,-(A1)          check for carriage return
+         BNE      WRONG             if not then wrong input
+         CMP.B    #NUL,-(A4)            check for end of stored string
+         BNE      WRONG             if not then wrong input
+         LEA.L    USRSUC,A4
+         BRA      PSTRING
+
+         LEA.L    LOGINM1,A4
+         BSR.W    PSTRING           hello
+         BSR.W    NEWLINE
+         RTS
+
+WRONG    LEA.L    USRERR,A4   
+         BRA      PSTRING
+
+UPASS    LEA.L    USRSUC,A4
+         BRA      PSTRING  
+
 *************************************************************************         
 * 
 *  Exception handling routines 
@@ -1104,10 +1130,10 @@ X_UN    EQU     *                 Uninitialized exception vector routine
 *  All strings and other fixed parameters here 
 * 
 BANNER   DC.B     'TSBUG 2 Version 23.07.86',0,0
-MODIFY	 DC.B	  'Modified by Eugene A. Rockey Jr. Jan.05.2010',0,0
+MODIFY    DC.B   'Modified by Eugene A. Rockey Jr. Jan.05.2010',0,0
 WHY      DC.B     'for use with the M68000 Minimal Computer Configuration',0,0 
 WHERE    DC.B     'University of Louisville',0,0
-ADDRE	 DC.B	  '* IMPORTANT, TURN ON CAPS LOCK  *',0,0
+ADDRE  DC.B   '* IMPORTANT, TURN ON CAPS LOCK  *',0,0
 CRLF     DC.B     CR,LF,'TS2MON >',0 
 HEADER   DC.B     CR,LF,'S','1',0,0 
 TAIL     DC.B     'S9  ',0,0 
@@ -1132,7 +1158,13 @@ ERMES4   DC.B     'Table full  ',0,0
 ERMES5   DC.B     'Breakpoint not active   ',0,0 
 ERMES6   DC.B     'Uninitialized exception ',0,0 
 JUMPHELP DC.B     'JUMP <address> causes execution to begin at <address>',0      
-ERMES7   DC.B     ' Range error',0 
+ERMES7   DC.B     ' Range error',0
+UNAME    DC.B     'USER', 0
+PWORD    DC.B     'PASSWORD',0
+LOGINM1  DC.B     'Enter username: ', 0
+USRERR   DC.B     'Incorrect username', 0
+USRSUC   DC.B     'Correct Username', 0
+ 
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
 *         a string length + number of characters to match + the string 
@@ -1229,7 +1261,8 @@ DCB6     DC.B    'BUFF_OUT'
          END RESET 
 
 
+
 *~Font name~Courier New~
-*~Font size~10~
+*~Font size~14~
 *~Tab type~1~
-*~Tab size~8~
+*~Tab size~4~
