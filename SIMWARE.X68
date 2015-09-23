@@ -34,7 +34,7 @@ BP_TAB   DS.W     24                Breakpoint table
 FIRST    DS.B     512               DCB area 
 BUFFER   DS.B     256               256 bytes for I/O buffer 
 MIN_RAM  DC.L     $004000
-MAX_RAM  DC.L     $004FFF
+MAX_RAM  DC.L     $004100
 * 
 ************************************************************************* 
 * 
@@ -923,10 +923,28 @@ UPASS    LEA.L    USRSUC,A4
 QUIT     JMP      QUIT
 *
 ************************************************************************* 
-TV       LEA.L    JUMPHELP,A4
-         BSR.W    PSTRING
-         BSR.W    NEWLINE
+TV       MOVE.L   MIN_RAM,A4
+LOOPRAM  MOVE.W   #0,D0
+         MOVE.W   D0,(A4)
+         LEA.L    2(A4),A4          Point to next address to display
+         CMP.L    MAX_RAM,A4
+         BNE      LOOPRAM
+         MOVE.L   MIN_RAM,A4
+CHECK1   MOVE.W   (A4),D0
+         LEA.L    2(A4),A4          Point to next address to read
+         CMP.W    #0,D0
+         BEQ      MEMFAIL
+CHECK2   CMP.L    MAX_RAM,A4
+         BNE      CHECK1         
          RTS
+
+MEMFAIL  MOVE.L  A4,-(A7)          Save A4 
+         BSR.W   NEWLINE
+         LEA.L   MEMFMSG,A4
+         BSR.W   PSTRING
+         MOVE.L  (A7)+,A4          Restore A4 
+         BRA     CHECK2
+
 *************************************************************************         
 * 
 *  Exception handling routines 
@@ -1218,6 +1236,7 @@ USRERR   DC.B     'Incorrect username', 0
 USRSUC   DC.B     'Correct Username', 0
 PWERR   DC.B     'Incorrect password', 0
 PWSUC    DC.B     'Correct Password', 0
+MEMFMSG  DC.B     'MEMORY BAD AT: ',0
  
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
@@ -1316,6 +1335,9 @@ DCB6     DC.B    'BUFF_OUT'
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
+
+
 
 
 
