@@ -657,7 +657,7 @@ GETCHAR  MOVE.L  A0,-(A7)        Save working register
          AND.B   #%11011111,D0   Else clear bit 5 for upper case conv 
 GETCH2   TST.B   ECHO(A6)        Do we need to echo the input? 
          BNE.S   GETCH3          If ECHO not zero then no echo 
-    BSR.S   PUTCHAR         Else echo the input 
+         BSR.S   PUTCHAR         Else echo the input 
 GETCH3   MOVE.L  (A7)+,A0        Restore working register 
          RTS                     and return 
 * 
@@ -666,11 +666,23 @@ GETCH3   MOVE.L  (A7)+,A0        Restore working register
 *  PUTCHAR sends a character to the console device 
 *  The name of the output device is in CN_OVEC. 
 * 
-PUTCHAR  MOVE.L  A0,-(A7)        Save working register 
+PUTCHAR  CMP.B   #1,D6
+         BEQ     PUTASK
+         MOVE.L  A0,-(A7)        Save working register
          MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
          BSR.S   IO_OPEN         Open console (Get address of DCB) 
          BSR     IO_REQ          Perform output with DCB pointed at by A0 
          MOVE.L  (A7)+,A0        Restore working register 
+         RTS 
+
+PUTASK   MOVE    D0,-(A5)
+         MOVE    #'*',D0
+         MOVE.L  A0,-(A7)        Save working register
+         MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
+         BSR.S   IO_OPEN         Open console (Get address of DCB) 
+         BSR     IO_REQ          Perform output with DCB pointed at by A0 
+         MOVE.L  (A7)+,A0        Restore working register
+         MOVE    (A5)+,D0
          RTS 
 * 
 ************************************************************************* 
@@ -871,7 +883,9 @@ LOGIN1   MOVE.B   (A1)+,D5
          LEA.L    LOGINM2,A4
          BSR.W    PSTRING
          BSR.W    NEWLINE
+         MOVE.B   #1,D6
          BSR.W    GETLINE
+         MOVE.B   #0,D6
          LEA.L    PWORD,A4
 LOGIN2   MOVE.B   (A1)+,D5
          CMP.B    (A4)+,D5
