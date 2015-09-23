@@ -33,6 +33,8 @@ TSK_T    DS.W     37                Frame for D0-D7, A0-A6, USP, SSP, SW, PC
 BP_TAB   DS.W     24                Breakpoint table 
 FIRST    DS.B     512               DCB area 
 BUFFER   DS.B     256               256 bytes for I/O buffer 
+MIN_RAM  DC.L     $004000
+MAX_RAM  DC.L     $004FFF
 * 
 ************************************************************************* 
 * 
@@ -73,8 +75,8 @@ RESET:   EQU      *
          JSR      8(A0)             else continue 
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine 
-WARM:    CLR.L    D7                Warm entry point - clear error flag 
          JSR      LOGIN
+WARM:    CLR.L    D7                Warm entry point - clear error flag 
          BSR.S    NEWLINE           Print a newline 
          BSR.S    GETLINE           Get a command line 
          BSR      TIDY              Tidy up input buffer contents 
@@ -667,7 +669,7 @@ GETCH3   MOVE.L  (A7)+,A0        Restore working register
 *  The name of the output device is in CN_OVEC. 
 * 
 PUTCHAR  CMP.B   #1,D6
-         BEQ     PUTASK
+         *BEQ     PUTASK
          MOVE.L  A0,-(A7)        Save working register
          MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
          BSR.S   IO_OPEN         Open console (Get address of DCB) 
@@ -675,15 +677,15 @@ PUTCHAR  CMP.B   #1,D6
          MOVE.L  (A7)+,A0        Restore working register 
          RTS 
 
-PUTASK   MOVE    D0,-(A5)
-         MOVE    #'*',D0
-         MOVE.L  A0,-(A7)        Save working register
-         MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
-         BSR.S   IO_OPEN         Open console (Get address of DCB) 
-         BSR     IO_REQ          Perform output with DCB pointed at by A0 
-         MOVE.L  (A7)+,A0        Restore working register
-         MOVE    (A5)+,D0
-         RTS 
+*PUTASK   MOVE    D0,-(A5)
+*         MOVE    #'*',D0
+*         MOVE.L  A0,-(A7)        Save working register
+*         MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
+*         BSR.S   IO_OPEN         Open console (Get address of DCB) 
+*         BSR     IO_REQ          Perform output with DCB pointed at by A0 
+*         MOVE.L  (A7)+,A0        Restore working register
+*         MOVE    (A5)+,D0
+*         RTS 
 * 
 ************************************************************************* 
 * 
@@ -865,7 +867,9 @@ HELP     LEA.L    JUMPHELP,A4
          RTS
          
 *************************************************************************
-LOGIN    LEA.L    LOGINM1,A4
+LOGIN    CMP.B    #3,D4
+         BEQ      QUIT
+         LEA.L    LOGINM1,A4
          BSR.W    PSTRING           
          BSR.W    NEWLINE
          BSR      GETLINE
@@ -873,9 +877,9 @@ LOGIN    LEA.L    LOGINM1,A4
 LOGIN1   MOVE.B   (A1)+,D5
          CMP.B    (A4)+,D5
          BEQ      LOGIN1            iterate through checking each char
-         CMP.B    #CR,-(A1)          check for carriage return
+         CMP.B    #CR,-(A1)         check for carriage return
          BNE      WRONG             if not then wrong input
-         CMP.B    #NUL,-(A4)            check for end of stored string
+         CMP.B    #NUL,-(A4)        check for end of stored string
          BNE      WRONG             if not then wrong input
          LEA.L    USRSUC,A4         print success
          BSR.W    PSTRING
@@ -899,19 +903,30 @@ LOGIN2   MOVE.B   (A1)+,D5
          LEA.L    LOGINM1,A4
          BSR.W    PSTRING           print success
          BSR.W    NEWLINE
-
-
+         BRA      WARM
 
 WRONG    LEA.L    USRERR,A4   
-         BRA      PSTRING
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         ADD.B    #1,D4
+         BRA      LOGIN
 
 WRONGPW  LEA.L    PWERR,A4   
-         BRA      PSTRING
-
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         ADD.B    #1,D4
+         BRA      LOGIN
 
 UPASS    LEA.L    USRSUC,A4
          BRA      PSTRING  
 
+QUIT     JMP      QUIT
+*
+************************************************************************* 
+TV       LEA.L    JUMPHELP,A4
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         RTS
 *************************************************************************         
 * 
 *  Exception handling routines 
@@ -1248,9 +1263,12 @@ COMTAB   DC.B     4,4              JUMP <address> causes execution to
          DC.B    4,3               REG <reg> <value> loads <value> 
          DC.B    'REG '            into <reg> in TASK_T. Used to preset 
          DC.L    REG_MOD-COMTAB    registers before a GO or GB 
-         DC.B    4,4               REG <reg> <value> loads <value> 
-         DC.B    'HELP'            into <reg> in TASK_T. Used to preset 
-         DC.L    HELP-COMTAB       registers before a GO or GB 
+         DC.B    4,4               HELP 
+         DC.B    'HELP'            
+         DC.L    HELP-COMTAB      
+         DC.B    2,2
+         DC.B    'TV'
+         DC.L    TV-COMTAB
          DC.B    0,0 
 * 
 ************************************************************************* 
