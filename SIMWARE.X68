@@ -924,26 +924,50 @@ QUIT     JMP      QUIT
 *
 ************************************************************************* 
 TV       MOVE.L   MIN_RAM,A4
-LOOPRAM  MOVE.W   #0,D0
-         MOVE.W   D0,(A4)
+LOOPRAM  MOVE.W   #0,D1
+         MOVE.W   D1,(A4)
          LEA.L    2(A4),A4          Point to next address to display
          CMP.L    MAX_RAM,A4
          BNE      LOOPRAM
          MOVE.L   MIN_RAM,A4
-CHECK1   MOVE.W   (A4),D0
-         LEA.L    2(A4),A4          Point to next address to read
-         CMP.W    #0,D0
-         BEQ      MEMFAIL
-CHECK2   CMP.L    MAX_RAM,A4
-         BNE      CHECK1         
+CHECK1   MOVE.W   (A4),D1
+         CMP.W    #0,D1
+         BNE      MEMFAIL
+CHECK2   LEA.L    2(A4),A4          Point to next address to read
+         CMP.L    MAX_RAM,A4
+         BNE      CHECK1
+         MOVE.L   MIN_RAM,A4
+LOOPRAM1 MOVE.W   #65535,D1
+         MOVE.W   D1,(A4)
+         LEA.L    2(A4),A4          Point to next address to display
+         CMP.L    MAX_RAM,A4
+         BNE      LOOPRAM1
+         MOVE.L   MIN_RAM,A4
+CHECK3   MOVE.W   (A4),D1
+         CMP.W    #65535,D1
+         BNE      MEMFAIL2
+CHECK4   LEA.L    2(A4),A4          Point to next address to read
+         CMP.L    MAX_RAM,A4
+         BNE      CHECK3
          RTS
 
 MEMFAIL  MOVE.L  A4,-(A7)          Save A4 
          BSR.W   NEWLINE
          LEA.L   MEMFMSG,A4
          BSR.W   PSTRING
-         MOVE.L  (A7)+,A4          Restore A4 
+         MOVE.L  (A7)+,A4          Restore A4
+         MOVE.L  A4,D0
+         BSR.W    OUT8X 
          BRA     CHECK2
+
+MEMFAIL2  MOVE.L  A4,-(A7)          Save A4 
+         BSR.W   NEWLINE
+         LEA.L   MEMFMSG,A4
+         BSR.W   PSTRING
+         MOVE.L  (A7)+,A4          Restore A4
+         MOVE.L  A4,D0
+         BSR.W    OUT8X 
+         BRA     CHECK4         
 
 *************************************************************************         
 * 
