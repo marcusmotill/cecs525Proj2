@@ -1,7 +1,22 @@
 *        TSBUG2 - 68000 monitor - version of 05 January 2010 
 
     ORG      $0
-         DC.L     STACK,RESET
+         DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L  TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
 *                                   Symbol equates 
 BS       EQU      $08               Back_space 
 CR       EQU      $0D               Carriage_return 
@@ -16,7 +31,7 @@ STACK    EQU      $4400             Stack_pointer
 ACIA_1   EQU      $8001             Console ACIA control 
 ACIA_2   EQU      ACIA_1            Auxilary ACIA control 
 X_BASE   EQU      $4000             Start of exception vector table 
-TRAP_14  EQU      $4E4E             Code for TRAP #14 
+TRAP_16  EQU      $4E4E             Code for TRAP #14 
 MAXCHR   EQU      64                Length of input line buffer  
 * 
 DATA     EQU      $4800             Data origin 
@@ -1020,6 +1035,23 @@ BRKPT   EQU     *                   Deal with breakpoint
         BSR     EX_DIS            Display saved registers 
         BRA     WARM              Return to monitor 
 * 
+DIV0_ER  EQU     *                   Divide By Zero Exception
+        MOVE.L  A4,-(A7)          Save A4 
+        LEA.L   MES13(PC),A4       Point to heading 
+        BSR     HEADING           Print it 
+        MOVE.L  (A7)+,A4          Restore A4 
+        BRA.S   GROUP1            Deal with group 1 exception 
+
+*
+PRIV_ER   EQU     *                 Privilege Violation Exception
+        MOVE.L  A4,-(A7)          Save A4 
+        LEA.L   MES14(PC),A4      Point to heading 
+        BSR     HEADING           Print it 
+        MOVE.L  (A7)+,A4          Restore A4
+        BSR     EX_dis
+        BRA     WARM
+        BRA.S   GROUP1            Deal with group 1 exception 
+* 
 *       GROUP1 is called by address and bus error exceptions 
 *       These are "turned into group 2" exceptions (eg TRAP) 
 *       by modifying the stack frame saved by a group 1 exception 
@@ -1139,7 +1171,7 @@ BR_SET1  MOVE.L  (A0)+,D1            Read breakpoint address from table
          CMP.L   A2,D1               Don't want to plant BP at current PC 
          BEQ.S   BR_SET2             location, so skip planting if same 
          MOVE.L  D1,A1               Transfer BP address to address reg 
-         MOVE.W  #TRAP_14,(A1)       Plant op-code for TRAP #14 in code 
+         MOVE.W  #TRAP_16,(A1)       Plant op-code for TRAP #14 in code 
 BR_SET2  LEA.L   2(A0),A0            Skip past op-code field in table 
          DBRA    D0,BR_SET1          Repeat until all entries tested 
          RTS 
