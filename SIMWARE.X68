@@ -1388,6 +1388,7 @@ PWERR   DC.B     'Incorrect password', 0
 PWSUC    DC.B     'Correct Password', 0
 MEMFMSG  DC.B     'MEMORY BAD AT: ',0
 MEMGMSG  DC.B      'ALL RAM GOOD', 0
+HELLO    DC.B      'HELLO',0
  
 * 
 *  COMTAB is the built-in command table. All entries are made up of 

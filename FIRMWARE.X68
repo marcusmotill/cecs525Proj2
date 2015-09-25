@@ -5,6 +5,7 @@
 *                                   Symbol equates 
 BS       EQU      $08               Back_space 
 CR       EQU      $0D               Carriage_return 
+NUL      EQU      $00               NUL character
 LF       EQU      $0A               Line_feed 
 SPACE    EQU      $20               Space 
 WAIT     EQU      'W'               Wait character (to suspend output) 
@@ -72,6 +73,8 @@ RESET:   EQU      *
 *         JSR      8(A0)             else continue 
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine 
+         CLR.L    D7                Warm entry point - clear error flag 
+         JSR      LOGIN                       
 WARM:    CLR.L    D7                Warm entry point - clear error flag 
          BSR.S    NEWLINE           Print a newline 
          BSR.S    GETLINE           Get a command line 
@@ -671,32 +674,54 @@ AUX_OT1  BTST.B  #1,(A1)         Test for ready to transmit
 GETCHAR  MOVE.L  A0,-(A7)        Save working register 
          MOVE.L  CN_IVEC(A6),A0  A0 points to name of console DCB 
          BSR.S   IO_OPEN         Open console (get DCB address in A0) 
-         BTST  #3,D7           D7(3) set if open error 
+         BTST    #3,D7           D7(3) set if open error 
          BNE.S   GETCH3          If error then exit now 
          BSR     IO_REQ          Else execute I/O transaction 
          AND.B   #$7F,D0         Strip msb of input 
          TST.B   U_CASE(A6)      Test for upper -> lower case conversion 
          BNE.S   GETCH2          If flag not zero do not convert case 
-         BTST  #6,D0           Test input for lower case 
+         BTST    #6,D0           Test input for lower case 
          BEQ.S   GETCH2          If upper case then skip conversion 
          AND.B   #%11011111,D0   Else clear bit 5 for upper case conv 
 GETCH2   TST.B   ECHO(A6)        Do we need to echo the input? 
-         BNE.S   GETCH3          If ECHO not zero then no echo 
+         BNE.S   GETCH3          If ECHO not zero then no echo
+         CMP.B   #1,D6
+         BEQ     PUTASK
          BSR.S   PUTCHAR         Else echo the input 
 GETCH3   MOVE.L  (A7)+,A0        Restore working register 
          RTS                     and return 
+
+PUTASK   CMP     #CR,D0
+         BEQ     SPUTCHAR
+         MOVE.B  D0,D3           save D0
+         MOVE.B  #42,D0
+         BRA    SPUTCHAR
+
 * 
 ************************************************************************* 
 * 
 *  PUTCHAR sends a character to the console device 
 *  The name of the output device is in CN_OVEC. 
 * 
-PUTCHAR  MOVE.L  A0,-(A7)        Save working register 
+PUTCHAR  CMP.B   #1,D6
+         ;BEQ     PUTASK
+         MOVE.L  A0,-(A7)        Save working register
          MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
          BSR.S   IO_OPEN         Open console (Get address of DCB) 
          BSR     IO_REQ          Perform output with DCB pointed at by A0 
          MOVE.L  (A7)+,A0        Restore working register 
          RTS 
+
+SPUTCHAR  MOVE.L  A0,-(A7)        Save working register
+          MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
+          BSR.S   IO_OPEN         Open console (Get address of DCB) 
+          BSR     IO_REQ          Perform output with DCB pointed at by A0 
+          MOVE.L  (A7)+,A0        Restore working register
+          MOVE.B  D3,D0           restore d0
+          BRA     GETCH3 
+
+
+* 
 * 
 ************************************************************************* 
 * 
@@ -885,6 +910,64 @@ HELP     LEA.L    JUMPHELP,A4
          LEA.L    TVHELP,A4
          BSR.W    PSTRING
          RTS
+
+*      
+*************************************************************************
+LOGIN    CMP.B    #2,D4
+         BEQ      QUIT
+         LEA.L    LOGINM1,A4
+         BSR.W    PSTRING           
+         BSR.W    NEWLINE
+         BSR      GETLINE
+         LEA.L    UNAME,A4
+LOGIN1   MOVE.B   (A1)+,D5
+         CMP.B    (A4)+,D5
+         BEQ      LOGIN1            iterate through checking each char
+         CMP.B    #CR,-(A1)         check for carriage return
+         BNE      WRONG             if not then wrong input
+         CMP.B    #NUL,-(A4)        check for end of stored string
+         BNE      WRONG             if not then wrong input
+         LEA.L    USRSUC,A4         print success
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         LEA.L    LOGINM2,A4
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         MOVE.B   #1,D6
+         BSR.W    GETLINE
+         MOVE.B   #0,D6
+         LEA.L    PWORD,A4
+LOGIN2   MOVE.B   (A1)+,D5
+         CMP.B    (A4)+,D5
+         BEQ      LOGIN2            iterate through checking each char
+         CMP.B    #CR,-(A1)          check for carriage return
+         BNE      WRONG             if not then wrong input
+         CMP.B    #NUL,-(A4)            check for end of stored string
+         BNE      WRONGPW             if not then wrong input
+         LEA.L    PWSUC,A4
+         BRA      PSTRING
+         LEA.L    LOGINM1,A4
+         BSR.W    PSTRING           print success
+         BSR.W    NEWLINE
+         BRA      WARM
+
+WRONG    LEA.L    USRERR,A4   
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         ADD.B    #1,D4
+         BRA      LOGIN
+
+WRONGPW  LEA.L    PWERR,A4   
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         ADD.B    #1,D4
+         BRA      LOGIN
+
+UPASS    LEA.L    USRSUC,A4
+         BRA      PSTRING  
+
+QUIT     JMP      QUIT
+
 *
 ************************************************************************* 
 TV       MOVE.L   MIN_RAM,A4
