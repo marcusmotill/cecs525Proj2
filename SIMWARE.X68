@@ -3,7 +3,7 @@
     ORG      $0
          DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L  TRAP_0,TRAP_1,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,TRAP_14,TRAP_15
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
@@ -897,7 +897,15 @@ FOO20   CMP.B   #20,D1            D1 = 20 = Call DIV_0
         RTE
 FOO21   RTE         
 * 
-
+************************************************************************* 
+TRAP_14  EQU     *
+         JSR     BRKPT            User application breakpoint
+         RTE
+*
+************************************************************************* 
+TRAP_15  JMP     WARM              
+         RTE
+*
 ************************************************************************* 
 * 
 *  Display exception frame (D0 - D7, A0 - A6, USP, SSP, SR, PC) 
@@ -1380,7 +1388,6 @@ PWERR   DC.B     'Incorrect password', 0
 PWSUC    DC.B     'Correct Password', 0
 MEMFMSG  DC.B     'MEMORY BAD AT: ',0
 MEMGMSG  DC.B      'ALL RAM GOOD', 0
-HELLO    DC.B      'HELLO',0
  
 * 
 *  COMTAB is the built-in command table. All entries are made up of 

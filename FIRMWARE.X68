@@ -32,6 +32,8 @@ TSK_T    DS.W     37                Frame for D0-D7, A0-A6, USP, SSP, SW, PC
 BP_TAB   DS.W     24                Breakpoint table 
 FIRST    DS.B     512               DCB area 
 BUFFER   DS.B     256               256 bytes for I/O buffer 
+MIN_RAM  DC.L     $004000
+MAX_RAM  DC.L     $004100
 * 
 ************************************************************************* 
 * 
@@ -61,9 +63,6 @@ RESET:   EQU      *
          BSR.S    PSTRING
          BSR.S    NEWLINE
 	 LEA.L	  WHERE(PC),A4
-         BSR.S    PSTRING
-         BSR.S    NEWLINE
-	 LEA.L	  ADDRE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
 *         MOVE.L   #$3000,A0         A0 points to extension ROM 
@@ -877,8 +876,71 @@ EX_D1   MOVE.B  D5,D0             Put current register number in D0
 HELP     LEA.L    JUMPHELP,A4
          BSR.W    PSTRING
          BSR.W    NEWLINE
+         LEA.L    MEMHELP,A4
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         LEA.L    LOADHELP,A4
+         BSR.W    PSTRING
+         BSR.W    NEWLINE
+         LEA.L    TVHELP,A4
+         BSR.W    PSTRING
          RTS
-         
+*
+************************************************************************* 
+TV       MOVE.L   MIN_RAM,A4
+         MOVE.B   #0,D6
+LOOPRAM  MOVE.W   #0,D1
+         MOVE.W   D1,(A4)
+         LEA.L    2(A4),A4          Point to next address to display
+         CMP.L    MAX_RAM,A4
+         BNE      LOOPRAM
+         MOVE.L   MIN_RAM,A4
+CHECK1   MOVE.W   (A4),D1
+         CMP.W    #0,D1
+         BNE      MEMFAIL           
+CHECK2   LEA.L    2(A4),A4          Point to next address to read
+         CMP.L    MAX_RAM,A4
+         BNE      CHECK1
+         MOVE.L   MIN_RAM,A4
+LOOPRAM1 MOVE.W   #65535,D1
+         MOVE.W   D1,(A4)
+         LEA.L    2(A4),A4          Point to next address to display
+         CMP.L    MAX_RAM,A4
+         BNE      LOOPRAM1
+         MOVE.L   MIN_RAM,A4
+CHECK3   MOVE.W   (A4),D1
+         CMP.W    #65535,D1
+         BNE      MEMFAIL2
+CHECK4   LEA.L    2(A4),A4          Point to next address to read
+         CMP.L    MAX_RAM,A4
+         BNE      CHECK3
+         CMP.B    #0,D6
+         BEQ      MEMGOOD
+         RTS
+
+MEMFAIL  MOVE.L  A4,-(A7)          Save A4 
+         MOVE.L  #1,D6
+         BSR.W   NEWLINE
+         LEA.L   MEMFMSG,A4
+         BSR.W   PSTRING
+         MOVE.L  (A7)+,A4          Restore A4
+         MOVE.L  A4,D0
+         BSR.W    OUT8X 
+         BRA     CHECK2
+
+MEMFAIL2 MOVE.L  A4,-(A7)          Save A4 
+         MOVE.L  #1,D6
+         BSR.W   NEWLINE
+         LEA.L   MEMFMSG,A4
+         BSR.W   PSTRING
+         MOVE.L  (A7)+,A4          Restore A4
+         MOVE.L  A4,D0
+         BSR.W    OUT8X 
+         BRA     CHECK4         
+ 
+MEMGOOD  LEA.L  MEMGMSG,A4
+         BSR.W  PSTRING
+         RTS
 *************************************************************************
 * 
 *  Exception handling routines 
@@ -1133,10 +1195,9 @@ X_UN    EQU     *                 Uninitialized exception vector routine
 *  All strings and other fixed parameters here 
 * 
 BANNER   DC.B     'TSBUG 2 Version 23.07.86',0,0
-MODIFY	 DC.B	  'Modified by Eugene A. Rockey Jr. Jan.05.2010',0,0
+MODIFY    DC.B   'Modified by Eugene A. Rockey Jr. Jan.05.2010',0,0
 WHY      DC.B     'for use with the M68000 Minimal Computer Configuration',0,0 
 WHERE    DC.B     'University of Louisville',0,0
-ADDRE	 DC.B	  'CECS 525, www.cs.louisville.edu',0,0
 CRLF     DC.B     CR,LF,'TS2MON >',0 
 HEADER   DC.B     CR,LF,'S','1',0,0 
 TAIL     DC.B     'S9  ',0,0 
@@ -1149,7 +1210,9 @@ MES8     DC.B     'Bus error   ',0,0
 MES9     DC.B     'Address error   ',0,0 
 MES10    DC.B     'Illegal instruction ',0,0 
 MES11    DC.B     'Breakpoint  ',0,0 
-MES12    DC.B     'Trace  ',0 
+MES12    DC.B     'Trace   ',0 
+MES13    DC.B     'Divide by zero error', 0
+MES14    DC.B     'Privilege error', 0
 REGNAME  DC.B     'D0D1D2D3D4D5D6D7' 
          DC.B     'A0A1A2A3A4A5A6A7' 
          DC.B     'SSSR' 
@@ -1160,9 +1223,21 @@ ERMES3   DC.B     'Loading error',0
 ERMES4   DC.B     'Table full  ',0,0 
 ERMES5   DC.B     'Breakpoint not active   ',0,0 
 ERMES6   DC.B     'Uninitialized exception ',0,0 
+JUMPHELP DC.B     'JUMP <address> causes execution to begin at <address>',0   
+MEMHELP  DC.B     'MEMORY <address> examines contents of address> and allows them to be changed', 0   
+LOADHELP DC.B     'LOAD <string> loads S1/S2 records from the host. <string> is sent to host', 0
+TVHELP   DC.B     'TV checks all RAM addresses from $4000 to $40FE. Reports corrupt memory addresses', 0
 ERMES7   DC.B     ' Range error',0
-JUMPHELP DC.B     'JUMP <address> causes execution to begin at <address>',0
-LOGONMES1 DC.B     'ENTER USERNAME: ',0 
+UNAME    DC.B     'USER', 0
+PWORD    DC.B     'PASSWORD',0
+LOGINM1  DC.B     'Enter username: ', 0
+LOGINM2  DC.B     'Enter password: ', 0
+USRERR   DC.B     'Incorrect username', 0
+USRSUC   DC.B     'Correct Username', 0
+PWERR   DC.B     'Incorrect password', 0
+PWSUC    DC.B     'Correct Password', 0
+MEMFMSG  DC.B     'MEMORY BAD AT: ',0
+MEMGMSG  DC.B      'ALL RAM GOOD', 0
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
 *         a string length + number of characters to match + the string 
@@ -1176,41 +1251,14 @@ COMTAB   DC.B     4,4              JUMP <address> causes execution to
          DC.B     'MEMORY  '       <address> and allows them to be changed 
          DC.L     MEMORY-COMTAB 
          DC.B     4,2              LOAD <string> loads S1/S2 records 
-         DC.B     'LOAD'           from the host. <string> is sent to host
-         DC.L     LOAD-COMTAB  
-         DC.B     4,2              DUMP <string> sends S1 records to the 
-         DC.B     'DUMP'           host and is preceeded by <string>. 
-         DC.L     DUMP-COMTAB 
-*         DC.B     4,3              TRAN enters the transparant mode 
-*         DC.B     'TRAN'           and is exited by ESC,E. 
-*         DC.L     TM-COMTAB 
-         DC.B     4,2              NOBR <address> removes the breakpoint 
-         DC.B     'NOBR'           at <address> from the BP table. If 
-         DC.L     NOBR-COMTAB      no address is given all BPs are removed. 
-         DC.B     4,2              DISP displays the contents of the 
-         DC.B     'DISP'           pseudo registers in TSK_T. 
-         DC.L     EX_DIS-COMTAB 
-         DC.B    4,2               GO <address> starts program execution 
-         DC.B    'GO  '            at <address> and loads regs from TSK_T 
-         DC.L    GO-COMTAB 
-         DC.B    4,2               BRGT puts a breakpoint in the BP 
-         DC.B    'BRGT'            table - but not in the code 
-         DC.L    BR_GET-COMTAB 
-         DC.B    4,2               PLAN puts the breakpoints in the code 
-         DC.B    'PLAN' 
-         DC.L    BR_SET-COMTAB 
-         DC.B    4,4               KILL removes breakpoints from the code 
-         DC.B    'KILL' 
-         DC.L    BR_CLR-COMTAB 
-         DC.B    4,2               GB <address> sets breakpoints and 
-         DC.B    'GB  '            then calls GO. 
-         DC.L    GB-COMTAB 
-         DC.B    4,3               REG <reg> <value> loads <value> 
-         DC.B    'REG '            into <reg> in TASK_T. Used to preset 
-         DC.L    REG_MOD-COMTAB    registers before a GO or GB 
-         DC.B    4,4               REG <reg> <value> loads <value> 
-         DC.B    'HELP'            into <reg> in TASK_T. Used to preset 
-         DC.L    HELP-COMTAB       registers before a GO or GB
+         DC.B     'LOAD'           from the host. <string> is sent to host 
+         DC.L     LOAD-COMTAB 
+         DC.B    4,4               HELP 
+         DC.B    'HELP'            
+         DC.L    HELP-COMTAB      
+         DC.B    2,2
+         DC.B    'TV'
+         DC.L    TV-COMTAB
          DC.B    0,0 
 * 
 ************************************************************************* 
