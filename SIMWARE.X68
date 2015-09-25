@@ -88,8 +88,8 @@ RESET:   EQU      *
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine
          MOVE.W   #8,D4
-         MOVE.W   #2,D5
-         MOVE.B   #19,D1
+         MOVE.W   #10,D5
+         MOVE.B   #18,D1
          JSR      TRAP_0
          MOVE.B   D3,D0
          BSR.W    OUT8X
@@ -770,8 +770,8 @@ ADD_0   ADD.B     D4,D5
         RTS
 
 SUB_0   SUB.B     D4,D5
-        MOVE.B    D5,D3
         MOVE.B    #0,D4           resetting neg flag
+        MOVE.B    D5,D3
         BMI       SETNEG
         RTS
         
@@ -788,10 +788,17 @@ DIV_0   DIVS      D4,D5
         AND.B     #%01111111,D3
         ADD.B     #1,D3
         CMP.W     #127,D5
-        BCS       SETNEG
+        BCS       DIVNEG
         RTS
 
-SETNEG  MOVE.B    #1,D4
+DIVNEG  MOVE.B    #1,D4
+        RTS
+
+SETNEG  MOVE.B    #255,D4
+        SUB.B     D3,D4
+        MOVE.B    D4,D3
+        ADD.B     #1,D3
+        MOVE.B    #1,D4
         RTS
 
 MULNEG  MOVE.B    #1,D4
