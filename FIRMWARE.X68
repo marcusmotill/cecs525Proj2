@@ -1,7 +1,22 @@
 *        TSBUG2 - 68000 monitor - version of 05 January 2010 
 
 	 ORG      $0
-         DC.L     STACK,RESET
+         DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L  TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,TRAP_14,TRAP_15
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
 *                                   Symbol equates 
 BS       EQU      $08               Back_space 
 CR       EQU      $0D               Carriage_return 
@@ -16,7 +31,7 @@ STACK    EQU      $4400             Stack_pointer
 ACIA_1   EQU      $8001             Console ACIA control 
 ACIA_2   EQU      ACIA_1            Auxilary ACIA control 
 *X_BASE   EQU      $4000             Start of exception vector table 
-TRAP_14  EQU      $4E4E             Code for TRAP #14 
+TRAP_16  EQU      $4E4E             Code for TRAP #16 
 MAXCHR   EQU      64                Length of input line buffer  
 * 
 DATA     EQU      $4800             Data origin 
@@ -383,7 +398,7 @@ PSPACE   MOVE.B   D0,-(A7)          Print a single space
 * 
 ************************************************************************* 
 * 
-*  LOAD  Loads data formatted in hexadecimal "S" format from Port 2 
+*  LOAD  Loads data formatted in hexadecimal "S". format from Port 2 
 *        NOTE - I/O is automatically redirected to the aux port for 
 *        loader functions. S1 or S2 records accepted 
 * 
@@ -691,9 +706,9 @@ GETCH2   TST.B   ECHO(A6)        Do we need to echo the input?
 GETCH3   MOVE.L  (A7)+,A0        Restore working register 
          RTS                     and return 
 
-PUTASK   CMP     #CR,D0
+PUTASK   MOVE.B  D0,D3           save D0
+         CMP     #CR,D0
          BEQ     SPUTCHAR
-         MOVE.B  D0,D3           save D0
          MOVE.B  #42,D0
          BRA    SPUTCHAR
 
@@ -781,79 +796,152 @@ B_CLR   MOVE.W  #7,D0             Now clear the breakpoint table
 *        DBRA    D0,X_SET2         Repeat until all 8 cleared 
 *        RTS 
 * 
+*************************************************************************
+ADD_0   ADD.B     D4,D5
+        MOVE.B    D5,D3
+        MOVE.B    #0,D4           resetting neg flag
+        BMI       SETNEG
+        LEA.L     BANNER,A4
+        BRA       PSTRING
+        RTS
+
+SUB_0   SUB.B     D4,D5
+        MOVE.B    #0,D4           resetting neg flag
+        MOVE.B    D5,D3
+        BMI       SETNEG
+        RTS
+        
+MUL_0   MULS      D4,D5
+        MOVE.W    #0,D4           resetting neg flag
+        MOVE.L    D5,D3
+        BMI       MULNEG
+        RTS
+
+DIV_0   DIVS      D4,D5
+        MOVE.B    #0,D4           resetting neg flag
+        MOVE.B    D5,D3
+        NOT.B     D3
+        AND.B     #%01111111,D3
+        ADD.B     #1,D3
+        CMP.W     #127,D5
+        BCS       DIVNEG
+        RTS
+
+DIVNEG  MOVE.B    #1,D4
+        RTS
+
+SETNEG  MOVE.B    #255,D4
+        SUB.B     D3,D4
+        MOVE.B    D4,D3
+        ADD.B     #1,D3
+        MOVE.B    #1,D4
+        RTS
+
+MULNEG  MOVE.B    #1,D4
+        NOT.L     D3
+        AND.L     #%01111111111111111111111111111111,D3
+        ADD.B     #1,D3
+        RTS
+
 ************************************************************************* 
 * 
-*TRAP_0  EQU     *                 User links to  TS2BUG via TRAP #0 
-*FUNC0   CMP.B   #0,D1             D1 = 0 = Get character 
-*        BNE.S   FUNC1           
-*        BSR     GETCHAR 
-*        RTE 
-*FUNC1   CMP.B   #1,D1             D1 = 1 = Print character 
-*        BNE.S   FUNC2 
-*        BSR     PUTCHAR 
-*        RTE 
-*FUNC2   CMP.B   #2,D1             D1 = 2 = Newline 
-*        BNE.S   FUNC3 
-*        BSR     NEWLINE 
-*        RTE 
-*FUNC3   CMP.B   #3,D1             D1 = 3 = Get parameter from buffer 
-*        BNE.S   FUNC4 
-*        BSR     PARAM 
-*        RTE 
-*FUNC4   CMP.B   #4,D1             D1 = 4 = Print string pointed at by A4 
-*        BNE.S   FUNC5 
-*        BSR     PSTRING 
-*        RTE 
-*FUNC5   CMP.B   #5,D1             D1 = 5 = Get a hex character 
-*        BNE.S   FUNC6 
-*        BSR     HEX 
-*        RTE 
-*FUNC6   CMP.B   #6,D1             D1 = 6 = Get a hex byte 
-*        BNE.S   FUNC7 
-*        BSR     BYTE 
-*        RTE 
-*FUNC7   CMP.B   #7,D1             D1 = 7 = Get a word 
-*        BNE.S   FUNC8 
-*        BSR     WORD 
-*        RTE 
-*FUNC8   CMP.B   #8,D1             D1 = 8 = Get a longword 
-*        BNE.S   FUNC9 
-*        BSR     LONGWD 
-*        RTE 
-*FUNC9   CMP.B   #9,D1             D1 = 9 = Output hex byte 
-*        BNE.S   FUNC10  
-*        BSR     OUT2X 
-*        RTE 
-*FUNC10  CMP.B   #10,D1            D1 = 10 = Output hex word 
-*        BNE.S   FUNC11 
-*        BSR     OUT4X 
-*        RTE 
-*FUNC11  CMP.B   #11,D1            D1 = 11 = Output hex longword 
-*        BNE.S   FUNC12 
-*        BSR     OUT8X 
-*        RTE 
-*FUNC12  CMP.B   #12,D1            D1 = 12 = Print a space 
-*        BNE.S   FUNC13 
-*        BSR     PSPACE 
-*        RTE 
-*FUNC13  CMP.B   #13,D1            D1 = 13 = Get a line of text into 
-*        BNE.S   FUNC14            the line buffer 
-*        BSR     GETLINE 
-*        RTE 
-*FUNC14  CMP.B   #14,D1            D1 = 14 = Tidy up the line in the 
-*        BNE.S   FUNC15            line buffer by removing leading 
-*        BSR     TIDY              leading and multiple embeded spaces 
-*        RTE 
-*FUNC15  CMP.B   #15,D1            D1 = 15 = Execute the command in 
-*        BNE.S   FUNC16            the line buffer 
-*        BSR     EXECUTE 
-*        RTE 
-*FUNC16  CMP.B   #16,D1            D1 = 16 = Call RESTORE to transfer 
-*        BNE.S   FUNC17            the registers in TSK_T to the 68000 
-*        BSR     RESTORE           and therefore execute a program 
-*        RTE 
-*FUNC17  RTE 
 * 
+TRAP_0  EQU     *                 User links to  TS2BUG via TRAP #0 
+        CMP.B   #0,D1             D1 = 0 = Get character 
+        BNE.S   FOO1           
+        BSR     GETCHAR 
+        RTE 
+FOO1    CMP.B   #1,D1             D1 = 1 = Print character 
+        BNE.S   FOO2 
+        BSR     PUTCHAR 
+        RTE 
+FOO2    CMP.B   #2,D1             D1 = 2 = Newline 
+        BNE.S   FOO3 
+        BSR     NEWLINE 
+        RTE 
+FOO3    CMP.B   #3,D1             D1 = 3 = Get parameter from buffer 
+        BNE.S   FOO4 
+        BSR     PARAM 
+        RTE 
+FOO4    CMP.B   #4,D1             D1 = 4 = Print string pointed at by A4 
+        BNE.S   FOO5 
+        BSR     PSTRING 
+        RTE 
+FOO5    CMP.B   #5,D1             D1 = 5 = Get a hex character 
+        BNE.S   FOO6 
+        BSR     HEX 
+        RTE 
+FOO6    CMP.B   #6,D1             D1 = 6 = Get a hex byte 
+        BNE.S   FOO7 
+        BSR     BYTE 
+        RTE 
+FOO7    CMP.B   #7,D1             D1 = 7 = Get a word 
+        BNE.S   FOO8 
+        BSR     WORD 
+        RTE 
+FOO8    CMP.B   #8,D1             D1 = 8 = Get a longword 
+        BNE.S   FOO9 
+        BSR     LONGWD 
+        RTE 
+FOO9    CMP.B   #9,D1             D1 = 9 = Output hex byte 
+        BNE.S   FOO10  
+        BSR     OUT2X 
+        RTE 
+FOO10   CMP.B   #10,D1            D1 = 10 = Output hex word 
+        BNE.S   FOO11 
+        BSR     OUT4X 
+        RTE 
+FOO11   CMP.B   #11,D1            D1 = 11 = Output hex longword 
+        BNE.S   FOO12 
+        BSR     OUT8X 
+        RTE 
+FOO12   CMP.B   #12,D1            D1 = 12 = Print a space 
+        BNE.S   FOO13 
+        BSR     PSPACE 
+        RTE 
+FOO13   CMP.B   #13,D1            D1 = 13 = Get a line of text into 
+        BNE.S   FOO14            the line buffer 
+        BSR     GETLINE 
+        RTE 
+FOO14   CMP.B   #14,D1            D1 = 14 = Tidy up the line in the 
+        BNE.S   FOO15            line buffer by removing leading 
+        BSR     TIDY              leading and multiple embeded spaces 
+        RTE 
+FOO15   CMP.B   #15,D1            D1 = 15 = Execute the command in 
+        BNE.S   FOO16            the line buffer 
+        BSR     EXECUTE 
+        RTE 
+FOO16   CMP.B   #16,D1            D1 = 16 = Call RESTORE to transfer 
+        BNE.S   FOO17            the registers in TSK_T to the 68000 
+        BSR     RESTORE           and therefore execute a program 
+        RTE 
+FOO17   CMP.B   #17,D1            D1 = 17 = Call ADD_0
+        BNE.S   FOO18            
+        BSR     ADD_0            
+        RTE 
+FOO18   CMP.B   #18,D1            D1 = 18 = Call SUB_0
+        BNE.S   FOO19            
+        BSR     SUB_0            
+        RTE 
+FOO19   CMP.B   #19,D1            D1 = 19 = Call MUL_0
+        BNE.S   FOO20            
+        BSR     MUL_0            
+        RTE 
+FOO20   CMP.B   #20,D1            D1 = 20 = Call DIV_0
+        BNE.S   FOO21            
+        BSR     DIV_0            
+        RTE
+FOO21   RTE         
+* 
+************************************************************************* 
+TRAP_14  EQU     *
+         JSR     BRKPT            User application breakpoint
+         RTE
+*
+************************************************************************* 
+TRAP_15  JMP     WARM              
+         RTE
+*
 ************************************************************************* 
 * 
 *  Display exception frame (D0 - D7, A0 - A6, USP, SSP, SR, PC) 
@@ -1028,12 +1116,16 @@ MEMGOOD  LEA.L  MEMGMSG,A4
 * 
 *  Exception handling routines 
 * 
+*************************************************************************         
+* 
+*  Exception handling routines 
+* 
 IL_ER   EQU      *                Illegal instruction exception 
         MOVE.L  A4,-(A7)          Save A4 
         LEA.L   MES10(PC),A4      Point to heading 
         BSR     HEADING           Print it 
         MOVE.L  (A7)+,A4          Restore A4 
-        BSR.S   GROUP2            Save registers in display frame 
+        BSR.W   GROUP2            Save registers in display frame 
         BSR     EX_DIS            Display registers saved in frame 
         BRA     WARM              Abort from illegal instruction 
 * 
@@ -1049,6 +1141,22 @@ ADD_ER  EQU     *                 Address error (group 1) exception
         LEA.L   MES9(PC),A4       Point to heading 
         BSR     HEADING           Print it 
         MOVE.L  (A7)+,A4          Restore A4 
+        BRA.S   GROUP1            Deal with group 1 exception 
+* 
+DIV0_ER  EQU     *                   Divide By Zero Exception
+        MOVE.L  A4,-(A7)          Save A4 
+        LEA.L   MES13(PC),A4       Point to heading 
+        BSR     HEADING           Print it 
+        MOVE.L  (A7)+,A4          Restore A4 
+        BRA.S   GROUP1            Deal with group 1 exception 
+*
+PRIV_ER   EQU     *                 Privilege Violation Exception
+        MOVE.L  A4,-(A7)          Save A4 
+        LEA.L   MES14(PC),A4      Point to heading 
+        BSR     HEADING           Print it 
+        MOVE.L  (A7)+,A4          Restore A4
+        BSR     EX_dis
+        BRA     WARM
         BRA.S   GROUP1            Deal with group 1 exception 
 * 
 BRKPT   EQU     *                   Deal with breakpoint 
@@ -1180,7 +1288,7 @@ BR_SET1  MOVE.L  (A0)+,D1            Read breakpoint address from table
          CMP.L   A2,D1               Don't want to plant BP at current PC 
          BEQ.S   BR_SET2             location, so skip planting if same 
          MOVE.L  D1,A1               Transfer BP address to address reg 
-         MOVE.W  #TRAP_14,(A1)       Plant op-code for TRAP #14 in code 
+         MOVE.W  #TRAP_16,(A1)       Plant op-code for TRAP #14 in code 
 BR_SET2  LEA.L   2(A0),A0            Skip past op-code field in table 
          DBRA    D0,BR_SET1          Repeat until all entries tested 
          RTS 
@@ -1336,6 +1444,9 @@ COMTAB   DC.B     4,4              JUMP <address> causes execution to
          DC.B     4,2              LOAD <string> loads S1/S2 records 
          DC.B     'LOAD'           from the host. <string> is sent to host 
          DC.L     LOAD-COMTAB 
+         DC.B    4,2               GO <address> starts program execution 
+         DC.B    'GO  '            at <address> and loads regs from TSK_T 
+         DC.L    GO-COMTAB 
          DC.B    4,4               HELP 
          DC.B    'HELP'            
          DC.L    HELP-COMTAB      
@@ -1389,6 +1500,7 @@ DCB4     DC.B    'AUX_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
 
 
 
