@@ -3,7 +3,7 @@
     ORG      $0
          DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L  TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
@@ -61,23 +61,23 @@ MAX_RAM  DC.L     $004100
          ORG      $1000             Monitor Origin
 RESET:   EQU      *
          LEA.L    DATA,A6           A6 points to data area 
-    MOVE.L    A6,TSK_T+56(A6)   initialize A6 in the regster Frame
+         MOVE.L    A6,TSK_T+56(A6)   initialize A6 in the regster Frame
          CLR.L    UTAB(A6)          Reset pointer to user extension table 
          MOVE.B   #1,ECHO(A6)       Set automatic character echo 
          CLR.B    U_CASE(A6)        Clear case conversion flag (UC<-LC) 
-    BSR.L     X_SET         what change did i do here
+         BSR.L     X_SET         what change did i do here
          BSR.L    SET_DCB           Setup DCB table in RAM
          BSR.S    NEWLINE
          LEA.L    BANNER(PC),A4    
          BSR.S    PSTRING
          BSR.S    NEWLINE           
-    LEA.L     MODIFY(PC),A4
+         LEA.L     MODIFY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-    LEA.L     WHY(PC),A4
+         LEA.L     WHY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-    LEA.L     WHERE(PC),A4
+         LEA.L     WHERE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
          MOVE.L   #$3000,A0         A0 points to extension ROM 
@@ -86,7 +86,13 @@ RESET:   EQU      *
          BNE.S    NO_EXT            call the subroutine at EXT_ROM+8 
          JSR      8(A0)             else continue 
 NO_EXT:  NOP                        Two NOPs to allow for a future 
-         NOP                        call to an initialization routine 
+         NOP                        call to an initialization routine
+         MOVE.W   #8,D4
+         MOVE.W   #2,D5
+         MOVE.B   #19,D1
+         JSR      TRAP_0
+         MOVE.B   D3,D0
+         BSR.W    OUT8X
          JSR      LOGIN
 WARM:    CLR.L    D7                Warm entry point - clear error flag 
          BSR.S    NEWLINE           Print a newline 
@@ -756,6 +762,45 @@ X_SET2  CLR.L   (A0)+             Clear an address entry
         DBRA    D0,X_SET2         Repeat until all 8 cleared 
         RTS 
 * 
+*************************************************************************
+ADD_0   ADD.B     D4,D5
+        MOVE.B    D5,D3
+        MOVE.B    #0,D4           resetting neg flag
+        BMI       SETNEG
+        RTS
+
+SUB_0   SUB.B     D4,D5
+        MOVE.B    D5,D3
+        MOVE.B    #0,D4           resetting neg flag
+        BMI       SETNEG
+        RTS
+        
+MUL_0   MULS      D4,D5
+        MOVE.W    #0,D4           resetting neg flag
+        MOVE.L    D5,D3
+        BMI       MULNEG
+        RTS
+
+DIV_0   DIVS      D4,D5
+        MOVE.B    #0,D4           resetting neg flag
+        MOVE.B    D5,D3
+        NOT.B     D3
+        AND.B     #%01111111,D3
+        ADD.B     #1,D3
+        CMP.W     #127,D5
+        BCS       SETNEG
+        RTS
+
+SETNEG  MOVE.B    #1,D4
+        RTS
+
+MULNEG  MOVE.B    #1,D4
+        NOT.L     D3
+        AND.L     #%01111111111111111111111111111111,D3
+        ADD.B     #1,D3
+        RTS
+
+* 
 ************************************************************************* 
 * 
 TRAP_0  EQU     *                 User links to  TS2BUG via TRAP #0 
@@ -827,8 +872,25 @@ FOO16   CMP.B   #16,D1            D1 = 16 = Call RESTORE to transfer
         BNE.S   FOO17            the registers in TSK_T to the 68000 
         BSR     RESTORE           and therefore execute a program 
         RTE 
-FOO17   RTE 
+FOO17   CMP.B   #17,D1            D1 = 17 = Call ADD_0
+        BNE.S   FOO18            
+        BSR     ADD_0            
+        RTE 
+FOO18   CMP.B   #18,D1            D1 = 18 = Call SUB_0
+        BNE.S   FOO19            
+        BSR     SUB_0            
+        RTE 
+FOO19   CMP.B   #19,D1            D1 = 19 = Call MUL_0
+        BNE.S   FOO20            
+        BSR     MUL_0            
+        RTE 
+FOO20   CMP.B   #20,D1            D1 = 20 = Call DIV_0
+        BNE.S   FOO21            
+        BSR     DIV_0            
+        RTE
+FOO21   RTE         
 * 
+
 ************************************************************************* 
 * 
 *  Display exception frame (D0 - D7, A0 - A6, USP, SSP, SR, PC) 
@@ -872,7 +934,6 @@ EX_D1   MOVE.B  D5,D0             Put current register number in D0
         BRA     NEWLINE           Newline and return 
 * 
 ************************************************************************* 
-
 HELP     LEA.L    JUMPHELP,A4
          BSR.W    PSTRING
          BSR.W    NEWLINE
@@ -885,7 +946,7 @@ HELP     LEA.L    JUMPHELP,A4
          LEA.L    TVHELP,A4
          BSR.W    PSTRING
          RTS
-         
+*      
 *************************************************************************
 LOGIN    CMP.B    #3,D4
          BEQ      QUIT
@@ -1007,7 +1068,7 @@ IL_ER   EQU      *                Illegal instruction exception
         LEA.L   MES10(PC),A4      Point to heading 
         BSR     HEADING           Print it 
         MOVE.L  (A7)+,A4          Restore A4 
-        BSR.S   GROUP2            Save registers in display frame 
+        BSR.W   GROUP2            Save registers in display frame 
         BSR     EX_DIS            Display registers saved in frame 
         BRA     WARM              Abort from illegal instruction 
 * 
@@ -1025,23 +1086,12 @@ ADD_ER  EQU     *                 Address error (group 1) exception
         MOVE.L  (A7)+,A4          Restore A4 
         BRA.S   GROUP1            Deal with group 1 exception 
 * 
-BRKPT   EQU     *                   Deal with breakpoint 
-        MOVEM.L D0-D7/A0-A6,-(A7)   Save all registers 
-        BSR     BR_CLR              Clear breakpoints in code 
-        MOVEM.L (A7)+,D0-D7/A0-A6   Restore registers 
-        BSR.S   GROUP2            Treat as group 2 exception 
-        LEA.L   MES11(PC),A4      Point to heading 
-        BSR     HEADING           Print it 
-        BSR     EX_DIS            Display saved registers 
-        BRA     WARM              Return to monitor 
-* 
 DIV0_ER  EQU     *                   Divide By Zero Exception
         MOVE.L  A4,-(A7)          Save A4 
         LEA.L   MES13(PC),A4       Point to heading 
         BSR     HEADING           Print it 
         MOVE.L  (A7)+,A4          Restore A4 
         BRA.S   GROUP1            Deal with group 1 exception 
-
 *
 PRIV_ER   EQU     *                 Privilege Violation Exception
         MOVE.L  A4,-(A7)          Save A4 
@@ -1051,6 +1101,17 @@ PRIV_ER   EQU     *                 Privilege Violation Exception
         BSR     EX_dis
         BRA     WARM
         BRA.S   GROUP1            Deal with group 1 exception 
+* 
+BRKPT   EQU     *                   Deal with breakpoint 
+        MOVEM.L D0-D7/A0-A6,-(A7)   Save all registers 
+        BSR     BR_CLR              Clear breakpoints in code 
+        MOVEM.L (A7)+,D0-D7/A0-A6   Restore registers 
+        BSR.S   GROUP2            Treat as group 2 exception 
+        LEA.L   MES11(PC),A4      Point to heading 
+        BSR     HEADING           Print it 
+        BSR     EX_DIS            Display saved registers 
+        BRA     WARM              Return to monitor 
+
 * 
 *       GROUP1 is called by address and bus error exceptions 
 *       These are "turned into group 2" exceptions (eg TRAP) 
@@ -1285,6 +1346,8 @@ MES9     DC.B     'Address error   ',0,0
 MES10    DC.B     'Illegal instruction ',0,0 
 MES11    DC.B     'Breakpoint  ',0,0 
 MES12    DC.B     'Trace   ',0 
+MES13    DC.B     'Divide by zero error', 0
+MES14    DC.B     'Privilege error', 0
 REGNAME  DC.B     'D0D1D2D3D4D5D6D7' 
          DC.B     'A0A1A2A3A4A5A6A7' 
          DC.B     'SSSR' 
@@ -1310,6 +1373,7 @@ PWERR   DC.B     'Incorrect password', 0
 PWSUC    DC.B     'Correct Password', 0
 MEMFMSG  DC.B     'MEMORY BAD AT: ',0
 MEMGMSG  DC.B      'ALL RAM GOOD', 0
+HELLO    DC.B      'HELLO',0
  
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
@@ -1379,6 +1443,10 @@ DCB6     DC.B    'BUFF_OUT'
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
+
+
+
 
 
 
