@@ -61,24 +61,24 @@ MAX_RAM  DC.L     $004100           maximum RAM address to be checked
          ORG      $1000             Monitor Origin
 RESET:   EQU      *
          LEA.L    DATA,A6           A6 points to data area 
-	 MOVE.L	  A6,TSK_T+56(A6)   initialize A6 in the regster Frame
+	      MOVE.L	A6,TSK_T+56(A6)   initialize A6 in the regster Frame
          CLR.L    UTAB(A6)          Reset pointer to user extension table 
          CLR.B    ECHO(A6)          Set automatic character echo 
          CLR.B    U_CASE(A6)        Clear case conversion flag (UC<-LC) 
          BSR.S    SETACIA           Setup ACIAs 
-	     BSR.L	  B_CLR		    what change did i do here
+	      BSR.L	   B_CLR		         what change did i do here
          BSR.L    SET_DCB           Setup DCB table in RAM
          BSR.S    NEWLINE
          LEA.L    BANNER(PC),A4    
          BSR.S    PSTRING
          BSR.S    NEWLINE           
-	 LEA.L	  MODIFY(PC),A4
+	      LEA.L	   MODIFY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-	 LEA.L	  WHY(PC),A4
+	      LEA.L	   WHY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-	 LEA.L	  WHERE(PC),A4
+	      LEA.L	   WHERE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
 NO_EXT:  NOP                        Two NOPs to allow for a future 
@@ -99,7 +99,6 @@ WARM:    CLR.L    D7                Warm entry point - clear error flag
 SETACIA  EQU      *                 Setup ACIA parameters 
          LEA.L    ACIA_1,A0         A0 points to console ACIA 
          MOVE.B   #$03,(A0)         Reset ACIA1 
-*         MOVE.B   #$03,1(A0)        Reset ACIA2 
          MOVE.B   #$19,(A0)         Set up ACIA1 constants (no IRQ, 
          MOVE.B   #$19,1(A0)        RTS* low, 8 bit, no parity, 1 stop) 
          RTS                        Return 
@@ -857,26 +856,26 @@ FOO20   CMP.B   #20,D1            D1 = 20 = Call DIV_0
         BNE.S   FOO21            
         BSR     DIV_0            
         RTE
-FOO21   CMP.B   #21,D1
+FOO21   CMP.B   #21,D1            D1 = 20 = Call GETLINE to get two digit input
         BNE.S   FOO22
         BSR     GETLINE
-        MOVE.B  (A1)+,D1
-        MOVE.B  (A1),D3
-        subi    #48,d1
-        subi    #48,d3   
-        MULU    #10,D1
-        ADD.B   D1,D3
+        MOVE.B  (A1)+,D1          get first digit
+        MOVE.B  (A1),D3           get second digit
+        subi    #48,d1            convert to number
+        subi    #48,d3            convert to number
+        MULU    #10,D1            Multiply first digit by 10
+        ADD.B   D1,D3             add digits
         RTE
-FOO22   CMP.B   #22,D1
-        BNE.S   FOO23
+FOO22   CMP.B   #22,D1            D1 = 20 = Call DIV_0
+        BNE.S   FOO23            
         BSR     NEWLINE
-        MOVE.B  D3,D0
-        BSR     OUT2X
-FOO23   CMP.B   #23,D1
+        MOVE.B  D3,D0             loading answer to D0
+        BSR     OUT2X             print D0
+FOO23   CMP.B   #23,D1            D1 = 20 = Call DIV_0
         BNE.S   FOO24
         BSR     NEWLINE
         MOVE.B  D3,D0
-        BSR     OUT4X
+        BSR     OUT4X             print D0
 FOO24   RTE         
 * 
 ************************************************************************* 
