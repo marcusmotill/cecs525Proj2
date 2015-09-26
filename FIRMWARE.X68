@@ -3,20 +3,20 @@
 	 ORG      $0
          DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L  TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,TRAP_14,TRAP_15
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         *DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,TRAP_14,TRAP_15
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
 *                                   Symbol equates 
 BS       EQU      $08               Back_space 
 CR       EQU      $0D               Carriage_return 
@@ -48,8 +48,8 @@ TSK_T    DS.W     37                Frame for D0-D7, A0-A6, USP, SSP, SW, PC
 BP_TAB   DS.W     24                Breakpoint table 
 FIRST    DS.B     512               DCB area 
 BUFFER   DS.B     256               256 bytes for I/O buffer 
-MIN_RAM  DC.L     $004000
-MAX_RAM  DC.L     $004100
+MIN_RAM  DC.L     $004000           minimum RAM address to be checked
+MAX_RAM  DC.L     $004100           maximum RAM address to be checked
 * 
 ************************************************************************* 
 * 
@@ -81,15 +81,10 @@ RESET:   EQU      *
 	 LEA.L	  WHERE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-*         MOVE.L   #$3000,A0         A0 points to extension ROM 
-*         MOVE.L   (A0),D0           Read first longword in extension ROM 
-*         CMP.L    #'ROM2',D0        If extension begins with 'ROM2' then 
-*         BNE.S    NO_EXT            call the subroutine at EXT_ROM+8 
-*         JSR      8(A0)             else continue 
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine 
          CLR.L    D7                Warm entry point - clear error flag 
-         JSR      LOGIN                       
+         JSR      LOGIN             jump tp lgin routine           
 WARM:    CLR.L    D7                Warm entry point - clear error flag 
          BSR.S    NEWLINE           Print a newline 
          BSR.S    GETLINE           Get a command line 
@@ -556,28 +551,6 @@ DELAY1   SUB.L     #1,D0            Count down         (8 clk cycles)
 * 
 ************************************************************************* 
 * 
-*  TM  Enter transparant mode (All communication to go from terminal to 
-*  the host processor until escape sequence entered). End sequence 
-*  = ESC, E. A newline is sent to the host to "clear it down". 
-* 
-*TM       MOVE.B    #$55,ACIA_1      Force RTS* high to re-route data 
-*         ADD.B     #1,ECHO(A6)      Turn off character echo 
-*TM1      BSR       GETCHAR          Get character 
-*         CMP.B     #ESC,D0          Test for end of TM mode 
-*         BNE       TM1              Repeat until first escape character 
-*         BSR       GETCHAR          Get second character 
-*         CMP.B     #'E',D0          If second char = E then exit TM 
-*         BNE       TM1              Else continue 
-*         MOVE.L    CN_OVEC(A6),-(A7) Save output port device name 
-*         MOVE.L    #DCB4,CN_OVEC(A6) Get name of host port (aux port) 
-*         BSR       NEWLINE          Send newline to host to clear it 
-*         MOVE.L    (A7)+,CN_OVEC(A6) Restore output device port name 
-*         CLR.B     ECHO(A6)         Restore echo mode 
-*         MOVE.B    #$15,ACIA_1      Restore normal ACIA mode (RTS* low) 
-*         RTS 
-* 
-************************************************************************* 
-* 
 *  This routine sets up the system DCBs in RAM using the information 
 *  stored in ROM at address DCB_LST. This is called at initialization. 
 *  CN_IVEC contains the name "DCB1" and IO_VEC the name "DCB2" 
@@ -663,25 +636,6 @@ CON_OT3  BTST  #1,D1           Repeat
 * 
 ************************************************************************* 
 * 
-*  AUX_IN and AUX_OUT are simplified versions of CON_IN and 
-*  CON_OUT for use with the port to the host processor 
-* 
-AUX_IN   LEA.L   12(A0),A1       Get pointer to aux ACIA from DCB 
-         MOVE.L  (A1),A1         Get address of aux ACIA 
-AUX_IN1  BTST.B  #0,(A1)         Test for data ready 
-         BEQ     AUX_IN1         Repeat until ready 
-         MOVE.B  2(A1),D0        Read input 
-         RTS 
-* 
-AUX_OUT  LEA.L   12(A0),A1       Get pointer to aux ACIA from DCB 
-         MOVE.L  (A1),A1         Get address of aux ACIA 
-AUX_OT1  BTST.B  #1,(A1)         Test for ready to transmit 
-         BEQ     AUX_OT1         Repeat until transmitter ready 
-         MOVE.B  D0,2(A1)        Transmit data 
-         RTS 
-* 
-************************************************************************* 
-* 
 *  GETCHAR gets a character from the console device 
 *  This is the main input routine and uses the device whose name  
 *  is stored in CN_IVEC. Changing this name redirects input. 
@@ -707,10 +661,10 @@ GETCH3   MOVE.L  (A7)+,A0        Restore working register
          RTS                     and return 
 
 PUTASK   MOVE.B  D0,D3           save D0
-         CMP     #CR,D0
-         BEQ     SPUTCHAR
-         MOVE.B  #42,D0
-         BRA    SPUTCHAR
+         CMP     #CR,D0          if Carriage_return 
+         BEQ     SPUTCHAR        then PUTCHAR
+         MOVE.B  #42,D0          else PUTASK to hide password
+         BRA     SPUTCHAR
 
 * 
 ************************************************************************* 
@@ -719,7 +673,6 @@ PUTASK   MOVE.B  D0,D3           save D0
 *  The name of the output device is in CN_OVEC. 
 * 
 PUTCHAR  CMP.B   #1,D6
-         ;BEQ     PUTASK
          MOVE.L  A0,-(A7)        Save working register
          MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
          BSR.S   IO_OPEN         Open console (Get address of DCB) 
@@ -734,27 +687,6 @@ SPUTCHAR  MOVE.L  A0,-(A7)        Save working register
           MOVE.L  (A7)+,A0        Restore working register
           MOVE.B  D3,D0           restore d0
           BRA     GETCH3 
-
-
-* 
-* 
-************************************************************************* 
-* 
-*  BUFF_IN and BUFF_OUT are two rudimentary input and output routines 
-*  which input data from and output data to a buffer in RAM. These are 
-*  used by DCB5 and DCB6, respectively. 
-* 
-*BUFF_IN  LEA.L   12(A0),A1       A1 points to I/P buffer 
-*         MOVE.L  (A1),A2         A2 gets I/P pointer from buffer 
-*         MOVE.B  -(A2),D0        Read char from buffer and adjust A2 
-*         MOVE.L  A2,(A1)         Restore pointer in buffer 
-*         RTS 
-* 
-*BUFF_OT  LEA.L   12(A0),A1       A1 points to O/P buffer 
-*         MOVE.L  4(A1),A2        A2 gets O/P pointer from buffer 
-*         MOVE.B  D0,(A2)+        Store char in buffer and adjust A2 
-*         MOVE.L  A2,(A1)         Restore pointer in buffer 
-*         RTS 
 * 
 ************************************************************************* 
 * 
@@ -791,55 +723,49 @@ OPEN4    MOVEM.L  (A7)+,A1-A3/D0-D4 Restore working registers
 B_CLR   MOVE.W  #7,D0             Now clear the breakpoint table 
         LEA.L   BP_TAB(A6),A0     Point to table
         RTS 
-*X_SET2  CLR.L   (A0)+             Clear an address entry 
-*        CLR.W   (A0)+             Clear the corresponding data 
-*        DBRA    D0,X_SET2         Repeat until all 8 cleared 
-*        RTS 
 * 
 *************************************************************************
-ADD_0   ADD.B     D4,D5
-        MOVE.B    D5,D3
+ADD_0   ADD.B     D4,D5           adding Bytes inputted to D4 and D5
+        MOVE.B    D5,D3           moving D5 to D3
         MOVE.B    #0,D4           resetting neg flag
-        BMI       SETNEG
-        LEA.L     BANNER,A4
-        BRA       PSTRING
+        BMI       SETNEG          if negative set neg flag
         RTS
 
-SUB_0   SUB.B     D4,D5
+SUB_0   SUB.B     D4,D5           subtracting Bytes inputted to D4 and D5
         MOVE.B    #0,D4           resetting neg flag
-        MOVE.B    D5,D3
-        BMI       SETNEG
+        MOVE.B    D5,D3           moving D5 to D3
+        BMI       SETNEG          if negative set neg flag
         RTS
         
-MUL_0   MULS      D4,D5
+MUL_0   MULS      D4,D5           multiplying Bytes inputted to D4 and D5
         MOVE.W    #0,D4           resetting neg flag
-        MOVE.L    D5,D3
-        BMI       MULNEG
+        MOVE.L    D5,D3           moving D5 to D3
+        BMI       MULNEG          if negative set neg flag
         RTS
 
-DIV_0   DIVS      D4,D5
+DIV_0   DIVS      D4,D5           dividing Bytes inputted to D4 and D5
         MOVE.B    #0,D4           resetting neg flag
-        MOVE.B    D5,D3
-        NOT.B     D3
-        AND.B     #%01111111,D3
-        ADD.B     #1,D3
-        CMP.W     #127,D5
-        BCS       DIVNEG
+        MOVE.B    D5,D3           moving D5 to D3
+        NOT.B     D3              converting result from twos Complement
+        AND.B     #%01111111,D3   to regular hex values
+        ADD.B     #1,D3           finishing process
+        CMP.W     #127,D5         if greater than, it is negative
+        BCS       DIVNEG          if negative set neg flag
         RTS
 
-DIVNEG  MOVE.B    #1,D4
+DIVNEG  MOVE.B    #1,D4           set neg flag
         RTS
 
-SETNEG  MOVE.B    #255,D4
-        SUB.B     D3,D4
-        MOVE.B    D4,D3
-        ADD.B     #1,D3
-        MOVE.B    #1,D4
+SETNEG  MOVE.B    #255,D4         convert twos comliment conversion
+        SUB.B     D3,D4           result to regular hex
+        MOVE.B    D4,D3           moving D4 to D3
+        ADD.B     #1,D3           set neg flag
+        MOVE.B    #1,D4           set neg flag
         RTS
 
-MULNEG  MOVE.B    #1,D4
-        NOT.L     D3
-        AND.L     #%01111111111111111111111111111111,D3
+MULNEG  MOVE.B    #1,D4           setting neg flag
+        NOT.L     D3              since a neg product is twos comliment this must 
+        AND.L     #%01111111111111111111111111111111,D3       be converted to hex
         ADD.B     #1,D3
         RTS
 
@@ -939,7 +865,7 @@ TRAP_14  EQU     *
          RTE
 *
 ************************************************************************* 
-TRAP_15  JMP     WARM              
+TRAP_15  JMP     WARM              jump to warm
          RTE
 *
 ************************************************************************* 
@@ -986,7 +912,7 @@ EX_D1   MOVE.B  D5,D0             Put current register number in D0
 * 
 ************************************************************************* 
 
-HELP     LEA.L    JUMPHELP,A4
+HELP     LEA.L    JUMPHELP,A4     printing strings for command help
          BSR.W    PSTRING
          BSR.W    NEWLINE
          LEA.L    MEMHELP,A4
@@ -1001,15 +927,15 @@ HELP     LEA.L    JUMPHELP,A4
 
 *      
 *************************************************************************
-LOGIN    CMP.B    #2,D4
-         BEQ      QUIT
-         LEA.L    LOGINM1,A4
+LOGIN    CMP.B    #2,D4             check if the user has attempts left
+         BEQ      QUIT              if three incorrect attempts lock out
+         LEA.L    LOGINM1,A4        print message
          BSR.W    PSTRING           
          BSR.W    NEWLINE
-         BSR      GETLINE
-         LEA.L    UNAME,A4
-LOGIN1   MOVE.B   (A1)+,D5
-         CMP.B    (A4)+,D5
+         BSR      GETLINE           get input
+         LEA.L    UNAME,A4          load correct username
+LOGIN1   MOVE.B   (A1)+,D5          move character to D5 and inc A5
+         CMP.B    (A4)+,D5          if character matches then continue
          BEQ      LOGIN1            iterate through checking each char
          CMP.B    #CR,-(A1)         check for carriage return
          BNE      WRONG             if not then wrong input
@@ -1021,34 +947,34 @@ LOGIN1   MOVE.B   (A1)+,D5
          LEA.L    LOGINM2,A4
          BSR.W    PSTRING
          BSR.W    NEWLINE
-         MOVE.B   #1,D6
+         MOVE.B   #1,D6             flag to let output know to hide password
          BSR.W    GETLINE
-         MOVE.B   #0,D6
+         MOVE.B   #0,D6             stop hiding output
          LEA.L    PWORD,A4
-LOGIN2   MOVE.B   (A1)+,D5
+LOGIN2   MOVE.B   (A1)+,D5          compare password with correct password
          CMP.B    (A4)+,D5
          BEQ      LOGIN2            iterate through checking each char
-         CMP.B    #CR,-(A1)          check for carriage return
+         CMP.B    #CR,-(A1)         check for carriage return
          BNE      WRONG             if not then wrong input
-         CMP.B    #NUL,-(A4)            check for end of stored string
-         BNE      WRONGPW             if not then wrong input
+         CMP.B    #NUL,-(A4)        check for end of stored string
+         BNE      WRONGPW           if not then wrong input
          LEA.L    PWSUC,A4
          BRA      PSTRING
          LEA.L    LOGINM1,A4
          BSR.W    PSTRING           print success
          BSR.W    NEWLINE
-         BRA      WARM
+         BRA      WARM              jump to warm if correct
 
-WRONG    LEA.L    USRERR,A4   
+WRONG    LEA.L    USRERR,A4         print message
          BSR.W    PSTRING
          BSR.W    NEWLINE
-         ADD.B    #1,D4
+         ADD.B    #1,D4             inc attempts counter
          BRA      LOGIN
 
-WRONGPW  LEA.L    PWERR,A4   
+WRONGPW  LEA.L    PWERR,A4          print message
          BSR.W    PSTRING
          BSR.W    NEWLINE
-         ADD.B    #1,D4
+         ADD.B    #1,D4             inc attempts counter
          BRA      LOGIN
 
 UPASS    LEA.L    USRSUC,A4
@@ -1058,58 +984,58 @@ QUIT     JMP      QUIT
 
 *
 ************************************************************************* 
-TV       MOVE.L   MIN_RAM,A4
-         MOVE.B   #0,D6
-LOOPRAM  MOVE.W   #0,D1
+TV       MOVE.L   MIN_RAM,A4        starting at MIN_RAM
+         MOVE.B   #0,D6             error flag 
+LOOPRAM  MOVE.W   #0,D1             
          MOVE.W   D1,(A4)
          LEA.L    2(A4),A4          Point to next address to display
-         CMP.L    MAX_RAM,A4
+         CMP.L    MAX_RAM,A4        if not the end of ram, continue
          BNE      LOOPRAM
-         MOVE.L   MIN_RAM,A4
+         MOVE.L   MIN_RAM,A4        resetting
 CHECK1   MOVE.W   (A4),D1
-         CMP.W    #0,D1
+         CMP.W    #0,D1             if mem is not zero there is an issue
          BNE      MEMFAIL           
 CHECK2   LEA.L    2(A4),A4          Point to next address to read
-         CMP.L    MAX_RAM,A4
+         CMP.L    MAX_RAM,A4        if not the end of ram, continue
          BNE      CHECK1
          MOVE.L   MIN_RAM,A4
-LOOPRAM1 MOVE.W   #65535,D1
+LOOPRAM1 MOVE.W   #65535,D1         loading all ram with 1's
          MOVE.W   D1,(A4)
          LEA.L    2(A4),A4          Point to next address to display
          CMP.L    MAX_RAM,A4
          BNE      LOOPRAM1
          MOVE.L   MIN_RAM,A4
-CHECK3   MOVE.W   (A4),D1
-         CMP.W    #65535,D1
-         BNE      MEMFAIL2
+CHECK3   MOVE.W   (A4),D1           move address to data reg
+         CMP.W    #65535,D1         comparing all ram with 1's
+         BNE      MEMFAIL2          mem fail if not all 1's
 CHECK4   LEA.L    2(A4),A4          Point to next address to read
-         CMP.L    MAX_RAM,A4
+         CMP.L    MAX_RAM,A4        if not the end of ram, continue
          BNE      CHECK3
-         CMP.B    #0,D6
-         BEQ      MEMGOOD
+         CMP.B    #0,D6             not issue flag
+         BEQ      MEMGOOD           print if 0
          RTS
 
 MEMFAIL  MOVE.L  A4,-(A7)          Save A4 
-         MOVE.L  #1,D6
+         MOVE.L  #1,D6             setting error flag
          BSR.W   NEWLINE
          LEA.L   MEMFMSG,A4
          BSR.W   PSTRING
          MOVE.L  (A7)+,A4          Restore A4
-         MOVE.L  A4,D0
-         BSR.W    OUT8X 
+         MOVE.L  A4,D0             loading addres to D0
+         BSR.W    OUT8X            print contents of D0
          BRA     CHECK2
 
 MEMFAIL2 MOVE.L  A4,-(A7)          Save A4 
-         MOVE.L  #1,D6
+         MOVE.L  #1,D6             setting error flag
          BSR.W   NEWLINE
          LEA.L   MEMFMSG,A4
          BSR.W   PSTRING
          MOVE.L  (A7)+,A4          Restore A4
-         MOVE.L  A4,D0
-         BSR.W    OUT8X 
+         MOVE.L  A4,D0             loading address to D0
+         BSR.W    OUT8X            print D0
          BRA     CHECK4         
  
-MEMGOOD  LEA.L  MEMGMSG,A4
+MEMGOOD  LEA.L  MEMGMSG,A4         memory has no errors
          BSR.W  PSTRING
          RTS
 *************************************************************************
@@ -1466,19 +1392,7 @@ DCB1     DC.B    'CON_IN  '          Device name (8 bytes)
 DCB2     DC.B    'CON_OUT ' 
          DC.L    CON_OUT,ACIA_1 
          DC.W    2 
-DCB3     DC.B    'AUX_IN  ' 
-         DC.L    AUX_IN,ACIA_2 
-         DC.W    2 
-DCB4     DC.B    'AUX_OUT ' 
-         DC.L    AUX_OUT,ACIA_2 
-         DC.W    2 
-*DCB5     DC.B    'BUFF_IN ' 
-*         DC.L    BUFF_IN,BUFFER 
-*         DC.W    2 
-*DCB6     DC.B    'BUFF_OUT' 
-*         DC.L    BUFF_OT,BUFFER 
-*         DC.W    2 
-* 
+
 ************************************************************************* 
 * 
 *  DCB structure 

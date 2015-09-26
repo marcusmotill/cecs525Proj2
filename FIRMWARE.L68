@@ -1,6 +1,6 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.15.04
-Created On: 9/25/15 1:46:35 AM
+Created On: 9/25/15 4:39:06 PM
 
 00000000                             1  *        TSBUG2 - 68000 monitor - version of 05 January 2010 
 00000000                             2  
@@ -402,14 +402,14 @@ Created On: 9/25/15 1:46:35 AM
 000012A2                           398  * 
 000012A2                           399  ************************************************************************* 
 000012A2                           400  * 
-000012A2                           401  *  LOAD  Loads data formatted in hexadecimal "S" format from Port 2 
+000012A2                           401  *  LOAD  Loads data formatted in hexadecimal "S". format from Port 2 
 000012A2                           402  *        NOTE - I/O is automatically redirected to the aux port for 
 000012A2                           403  *        loader functions. S1 or S2 records accepted 
 000012A2                           404  * 
 000012A2  2F2E 0116                405  LOAD     MOVE.L   CN_OVEC(A6),-(A7) Save current output device name 
 000012A6  2F2E 0112                406           MOVE.L   CN_IVEC(A6),-(A7) Save current input device name 
-000012AA  2D7C 0000206C 0116       407           MOVE.L   #DCB4,CN_OVEC(A6) Set up aux ACIA as output 
-000012B2  2D7C 0000205A 0112       408           MOVE.L   #DCB3,CN_IVEC(A6) Set up aux ACIA as input 
+000012AA  2D7C 00002076 0116       407           MOVE.L   #DCB4,CN_OVEC(A6) Set up aux ACIA as output 
+000012B2  2D7C 00002064 0112       408           MOVE.L   #DCB3,CN_IVEC(A6) Set up aux ACIA as input 
 000012BA  522E 010C                409           ADD.B    #1,ECHO(A6)       Turn off character echo 
 000012BE  6100 FDB2                410           BSR      NEWLINE           Send newline to host 
 000012C2  6100 0152                411           BSR      DELAY             Wait for host to "settle" 
@@ -588,7 +588,7 @@ Created On: 9/25/15 1:46:35 AM
 0000142A                           584  * 
 0000142A  48E7 F0F0                585  SET_DCB  MOVEM.L A0-A3/D0-D3,-(A7) Save all working registers 
 0000142E  41EE 0194                586           LEA.L   FIRST(A6),A0    Pointer to first DCB destination in RAM 
-00001432  43FA 0C02                587           LEA.L   DCB_LST(PC),A1  A1 points to DCB info block in ROM 
+00001432  43FA 0C0C                587           LEA.L   DCB_LST(PC),A1  A1 points to DCB info block in ROM 
 00001436  303C 0003                588           MOVE.W  #3,D0           4 DCBs to set up 
 0000143A  323C 000F                589  ST_DCB1  MOVE.W  #15,D1          16 bytes to move per DCB header 
 0000143E  10D9                     590  ST_DCB2  MOVE.B  (A1)+,(A0)+     Move the 16 bytes of a DCB header 
@@ -602,8 +602,8 @@ Created On: 9/25/15 1:46:35 AM
 00001454  51C8 FFE4                598           DBRA    D0,ST_DCB1      Repeat until all DCBs set up 
 00001458  47EB FFFC                599           LEA.L   -4(A3),A3       Adjust A3 to point to last DCB pointer 
 0000145C  4293                     600           CLR.L   (A3)            and force last pointer to zero 
-0000145E  2D7C 00002036 0112       601           MOVE.L  #DCB1,CN_IVEC(A6) Set up vector to console input DCB 
-00001466  2D7C 00002048 0116       602           MOVE.L  #DCB2,CN_OVEC(A6) Set up vector to console output DCB 
+0000145E  2D7C 00002040 0112       601           MOVE.L  #DCB1,CN_IVEC(A6) Set up vector to console input DCB 
+00001466  2D7C 00002052 0116       602           MOVE.L  #DCB2,CN_OVEC(A6) Set up vector to console output DCB 
 0000146E  4CDF 0F0F                603           MOVEM.L (A7)+,A0-A3/D0-D3 Restore registers 
 00001472  4E75                     604           RTS 
 00001474                           605  * 
@@ -1448,59 +1448,62 @@ Created On: 9/25/15 1:46:35 AM
 00002018= 04 02                   1444           DC.B     4,2              LOAD <string> loads S1/S2 records 
 0000201A= 4C 4F 41 44             1445           DC.B     'LOAD'           from the host. <string> is sent to host 
 0000201E= FFFFF2A2                1446           DC.L     LOAD-COMTAB 
-00002022= 04 04                   1447           DC.B    4,4               HELP 
-00002024= 48 45 4C 50             1448           DC.B    'HELP'            
-00002028= FFFFF7CE                1449           DC.L    HELP-COMTAB      
-0000202C= 02 02                   1450           DC.B    2,2
-0000202E= 54 56                   1451           DC.B    'TV'
-00002030= FFFFF8D0                1452           DC.L    TV-COMTAB
-00002034= 00 00                   1453           DC.B    0,0 
-00002036                          1454  * 
-00002036                          1455  ************************************************************************* 
-00002036                          1456  ** 
-00002036                          1457  *  This is a list of the information needed to setup the DCBs 
-00002036                          1458  * 
-00002036  =00002036               1459  DCB_LST  EQU     * 
-00002036= 43 4F 4E 5F 49 4E ...   1460  DCB1     DC.B    'CON_IN  '          Device name (8 bytes) 
-0000203E= 00001486 00008001       1461           DC.L    CON_IN,ACIA_1       Address of driver routine, device 
-00002046= 0002                    1462           DC.W    2                   Number of words in parameter field 
-00002048= 43 4F 4E 5F 4F 55 ...   1463  DCB2     DC.B    'CON_OUT ' 
-00002050= 000014B6 00008001       1464           DC.L    CON_OUT,ACIA_1 
-00002058= 0002                    1465           DC.W    2 
-0000205A= 41 55 58 5F 49 4E ...   1466  DCB3     DC.B    'AUX_IN  ' 
-00002062= 000014F6 00008001       1467           DC.L    AUX_IN,ACIA_2 
-0000206A= 0002                    1468           DC.W    2 
-0000206C= 41 55 58 5F 4F 55 ...   1469  DCB4     DC.B    'AUX_OUT ' 
-00002074= 00001508 00008001       1470           DC.L    AUX_OUT,ACIA_2 
-0000207C= 0002                    1471           DC.W    2 
-0000207E                          1472  *DCB5     DC.B    'BUFF_IN ' 
-0000207E                          1473  *         DC.L    BUFF_IN,BUFFER 
-0000207E                          1474  *         DC.W    2 
-0000207E                          1475  *DCB6     DC.B    'BUFF_OUT' 
-0000207E                          1476  *         DC.L    BUFF_OT,BUFFER 
-0000207E                          1477  *         DC.W    2 
-0000207E                          1478  * 
-0000207E                          1479  ************************************************************************* 
-0000207E                          1480  * 
-0000207E                          1481  *  DCB structure 
-0000207E                          1482  * 
-0000207E                          1483  *              ----------------------- 
-0000207E                          1484  *       0 ->   | DCB  name           | 
-0000207E                          1485  *              |---------------------| 
-0000207E                          1486  *       8 ->   | Device driver       | 
-0000207E                          1487  *              |---------------------| 
-0000207E                          1488  *      12 ->   | Device address      | 
-0000207E                          1489  *              |---------------------| 
-0000207E                          1490  *      16 ->   |Size of param block  | 
-0000207E                          1491  *              |---------------------| --- 
-0000207E                          1492  *      18 ->   |      Status         |   | 
-0000207E                          1493  *              | logical  | physical |   | S 
-0000207E                          1494  *              |---------------------|   | 
-0000207E                          1495  *              .                     .   . 
-0000207E                          1496  *              |---------------------| --- 
-0000207E                          1497  *    18+S ->   | Pointer to next DCB | 
-0000207E                          1498  * 
-0000207E                          1499           END RESET 
+00002022= 04 02                   1447           DC.B    4,2               GO <address> starts program execution 
+00002024= 47 4F 20 20             1448           DC.B    'GO  '            at <address> and loads regs from TSK_T 
+00002028= FFFFFA50                1449           DC.L    GO-COMTAB 
+0000202C= 04 04                   1450           DC.B    4,4               HELP 
+0000202E= 48 45 4C 50             1451           DC.B    'HELP'            
+00002032= FFFFF7CE                1452           DC.L    HELP-COMTAB      
+00002036= 02 02                   1453           DC.B    2,2
+00002038= 54 56                   1454           DC.B    'TV'
+0000203A= FFFFF8D0                1455           DC.L    TV-COMTAB
+0000203E= 00 00                   1456           DC.B    0,0 
+00002040                          1457  * 
+00002040                          1458  ************************************************************************* 
+00002040                          1459  ** 
+00002040                          1460  *  This is a list of the information needed to setup the DCBs 
+00002040                          1461  * 
+00002040  =00002040               1462  DCB_LST  EQU     * 
+00002040= 43 4F 4E 5F 49 4E ...   1463  DCB1     DC.B    'CON_IN  '          Device name (8 bytes) 
+00002048= 00001486 00008001       1464           DC.L    CON_IN,ACIA_1       Address of driver routine, device 
+00002050= 0002                    1465           DC.W    2                   Number of words in parameter field 
+00002052= 43 4F 4E 5F 4F 55 ...   1466  DCB2     DC.B    'CON_OUT ' 
+0000205A= 000014B6 00008001       1467           DC.L    CON_OUT,ACIA_1 
+00002062= 0002                    1468           DC.W    2 
+00002064= 41 55 58 5F 49 4E ...   1469  DCB3     DC.B    'AUX_IN  ' 
+0000206C= 000014F6 00008001       1470           DC.L    AUX_IN,ACIA_2 
+00002074= 0002                    1471           DC.W    2 
+00002076= 41 55 58 5F 4F 55 ...   1472  DCB4     DC.B    'AUX_OUT ' 
+0000207E= 00001508 00008001       1473           DC.L    AUX_OUT,ACIA_2 
+00002086= 0002                    1474           DC.W    2 
+00002088                          1475  *DCB5     DC.B    'BUFF_IN ' 
+00002088                          1476  *         DC.L    BUFF_IN,BUFFER 
+00002088                          1477  *         DC.W    2 
+00002088                          1478  *DCB6     DC.B    'BUFF_OUT' 
+00002088                          1479  *         DC.L    BUFF_OT,BUFFER 
+00002088                          1480  *         DC.W    2 
+00002088                          1481  * 
+00002088                          1482  ************************************************************************* 
+00002088                          1483  * 
+00002088                          1484  *  DCB structure 
+00002088                          1485  * 
+00002088                          1486  *              ----------------------- 
+00002088                          1487  *       0 ->   | DCB  name           | 
+00002088                          1488  *              |---------------------| 
+00002088                          1489  *       8 ->   | Device driver       | 
+00002088                          1490  *              |---------------------| 
+00002088                          1491  *      12 ->   | Device address      | 
+00002088                          1492  *              |---------------------| 
+00002088                          1493  *      16 ->   |Size of param block  | 
+00002088                          1494  *              |---------------------| --- 
+00002088                          1495  *      18 ->   |      Status         |   | 
+00002088                          1496  *              | logical  | physical |   | S 
+00002088                          1497  *              |---------------------|   | 
+00002088                          1498  *              .                     .   . 
+00002088                          1499  *              |---------------------| --- 
+00002088                          1500  *    18+S ->   | Pointer to next DCB | 
+00002088                          1501  * 
+00002088                          1502           END RESET 
 
 No errors detected
 No warnings generated
@@ -1557,11 +1560,11 @@ CR                  D
 CRLF                1C90
 CTRL_A              1
 DATA                4800
-DCB1                2036
-DCB2                2048
-DCB3                205A
-DCB4                206C
-DCB_LST             2036
+DCB1                2040
+DCB2                2052
+DCB3                2064
+DCB4                2076
+DCB_LST             2040
 DELAY               1416
 DELAY1              1420
 DIV0_ER             19AE
