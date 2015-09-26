@@ -1,0 +1,182 @@
+00004C00 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 9/25/15 3:31:44 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :  Lab 1 part 1
+00000000                             3  * Written by :  David Exe
+00000000                             4  * Date       :  9/8/15
+00000000                             5  * Description:  Create a simple math application that implements the basic math
+00000000                             6  *               operations +, -, *, / on integers in a simple command line calc. 
+00000000                             7  *-----------------------------------------------------------
+00004C00                             8      ORG    $4C00
+00004C00                             9      
+00004C00                            10  start         
+00004C00  41F9 00004D10             11      lea     calcMenu,a0
+00004C06  4EB9 00004CCC             12      jsr     SENDCHAR         Use Jump subroutine to send to terminal
+00004C0C                            13      
+00004C0C  41F9 00004F28             14      lea     enter1Msg,a0    Display 'enter 1 first number'
+00004C12  4EB9 00004CCC             15      jsr     SENDCHAR
+00004C18  123C 0015                 16      MOVE.B  #21,D1
+00004C1C  4E40                      17      TRAP    #0
+00004C1E  1803                      18      Move.B  D3,D4
+00004C20  41F9 00004F3F             19      lea     enter1aMsg,a0    Display 'enter 2 first number'
+00004C26  4EB9 00004CCC             20      jsr     SENDCHAR
+00004C2C  123C 0015                 21      MOVE.B  #21,D1
+00004C30  4E40                      22      TRAP    #0
+00004C32  1A03                      23      MOVE.B  D3,D5
+00004C34                            24      
+00004C34  41F9 00004FA6             25      lea     enterOpMsg,a0    Display 'enter operation'
+00004C3A  4EB9 00004CCC             26      jsr     SENDCHAR  
+00004C40                            27      
+00004C40  4EB9 00004CEA             28      jsr     GETCHAR
+00004C46  0441 0030                 29      subi    #48,d1
+00004C4A                            30      
+00004C4A  B23C 0000                 31      cmp.b   #0,d1           if 0 then exit
+00004C4E  6700 00BE                 32      beq     end
+00004C52                            33      
+00004C52  B23C 0001                 34      cmp.b    #1,d1           if 1 goto add
+00004C56  6700 0032                 35      beq     add
+00004C5A                            36      
+00004C5A  B23C 0002                 37      cmp.b     #2,d1           if 2 goto subtract
+00004C5E  6700 003A                 38      beq     sub
+00004C62                            39      
+00004C62  B23C 0003                 40      cmp.b     #3,d1           if 3 goto multiply 
+00004C66  6700 0042                 41      beq     mul
+00004C6A                            42      
+00004C6A  B23C 0004                 43      cmp.b    #4,d1           if 4 goto divide
+00004C6E  6700 004A                 44      beq     div
+00004C72                            45  
+00004C72  B23C 0005                 46      cmp.b    #5,d1           if 4 goto divide
+00004C76  6700 0052                 47      beq     bkr
+00004C7A                            48      
+00004C7A  41F9 0000500D             49      lea     error,a0
+00004C80  4EB9 00004CCC             50      jsr     SENDCHAR
+00004C86                            51      
+00004C86  6000 FF78                 52      bra     start           go to start if not a valid option
+00004C8A                            53      
+00004C8A                            54      
+00004C8A  123C 0011                 55  add   MOVE.B  #17,D1
+00004C8E  4E40                      56        TRAP    #0
+00004C90  123C 0016                 57        MOVE.B  #22,D1
+00004C94  4E40                      58        TRAP    #0
+00004C96  6000 FF68                 59        bra     start 
+00004C9A                            60  
+00004C9A  123C 0012                 61  sub   MOVE.B  #18,D1
+00004C9E  4E40                      62        TRAP    #0
+00004CA0  123C 0016                 63        MOVE.B  #22,D1
+00004CA4  4E40                      64        TRAP    #0
+00004CA6  6000 FF58                 65        bra     start 
+00004CAA                            66  
+00004CAA  123C 0013                 67  mul   MOVE.B  #19,D1
+00004CAE  4E40                      68        TRAP    #0
+00004CB0  123C 0017                 69        MOVE.B  #23,D1
+00004CB4  4E40                      70        TRAP    #0
+00004CB6  6000 FF48                 71        bra     start 
+00004CBA                            72      
+00004CBA  123C 0014                 73  div   MOVE.B  #20,D1
+00004CBE  4E40                      74        TRAP    #0
+00004CC0  123C 0017                 75        MOVE.B  #23,D1
+00004CC4  4E40                      76        TRAP    #0
+00004CC6  6000 FF38                 77        bra     start 
+00004CCA                            78  
+00004CCA  4E4E                      79  bkr   TRAP     #14
+00004CCC                            80  
+00004CCC                            81      
+00004CCC  1218                      82  SENDCHAR    MOVE.B      (A0)+,D1        Point to chars in equation and get
+00004CCE  B23C 0000                 83              CMP.B       #0,D1           Check for ending of string, null char
+00004CD2  6700 0014                 84              BEQ         DONE            Branch to return   
+00004CD6  0839 0001 00008001        85  OUTCHAR     BTST.B      #TDRE,ACIAC     Test 6850 control reg for readiness to transmit
+00004CDE  67F6                      86              BEQ         OUTCHAR         Loop until 6850 is ready to transmit
+00004CE0  13C1 00008003             87              MOVE.B      D1,ACIAD        Transmit equation character out data register
+00004CE6  60E4                      88              BRA         SENDCHAR         Branch back for the next character
+00004CE8  4E75                      89  DONE        RTS
+00004CEA                            90  
+00004CEA  0839 0000 00008001        91  GETCHAR     BTST.B      #RDRF,ACIAC
+00004CF2  67F6                      92              BEQ         GETCHAR        Loop until ready
+00004CF4  4281                      93              CLR.L       D1             Clear out all bits in register
+00004CF6  1239 00008003             94              MOVE.B      ACIAD,D1       Grap the character from terminal
+00004CFC  0839 0001 00008001        95  ECHO        BTST.B      #TDRE,ACIAC    send the character back for confirmation of enter
+00004D04  67F6                      96              BEQ         ECHO
+00004D06  13C1 00008003             97              MOVE.B      D1, ACIAD
+00004D0C  4E75                      98              RTS
+00004D0E                            99      
+00004D0E  4E4F                     100  end         TRAP    #15          halt simulator
+00004D10                           101      
+00004D10  =0000000D                102  CR      EQU     $0D
+00004D10  =0000000A                103  LF      EQU     $0A
+00004D10  =00008001                104  ACIAC   EQU     $8001           Location of the 6850 serial interface control reg.
+00004D10  =00008003                105  ACIAD   EQU     ACIAC+2         Location of the 6850 serial interface data reg.
+00004D10  =00000001                106  TDRE    EQU     1               Transmit data register empty 
+00004D10  =00000000                107  RDRF    EQU     0               Receive data register full
+00004D10                           108  
+00004D10= 0D 0A                    109  calcMenu    dc.b    CR,LF
+00004D12= 20 20 20 2B 68 65 ...    110      dc.b    '   +he Simpl- C*lcu/ator ',CR,LF
+00004D2D= 20 20 5F 5F 5F 5F ...    111      dc.b    '  _______________________ ',CR,LF
+00004D49= 20 7C 20 20 5F 5F ...    112      dc.b    ' |  ___________________  |',CR,LF
+00004D65= 20 7C 20 7C 20 20 ...    113      dc.b    ' | |                   | |',CR,LF
+00004D81= 20 7C 20 7C 20 45 ...    114      dc.b    ' | | Enter each Number | |',CR,LF
+00004D9D= 20 7C 20 7C 54 68 ...    115      dc.b    ' | |Then Enter Operator| |',CR,LF
+00004DB9= 20 7C 20 7C 31 28 ...    116      dc.b    ' | |1(+) 2(-) 3(*) 4(/)| |',CR,LF
+00004DD5= 20 7C 20 7C 20 20 ...    117      dc.b    ' | |      0(exit)      | |',CR,LF
+00004DF1= 20 7C 20 7C 5F 5F ...    118      dc.b    ' | |___________________| |',CR,LF
+00004E0D= 20 7C 20 20 20 5F ...    119      dc.b    ' |   ___ ___ ___   ___   |',CR,LF
+00004E29= 20 7C 20 20 7C 20 ...    120      dc.b    ' |  | 7 | 8 | 9 | | + |  |',CR,LF
+00004E45= 20 7C 20 20 7C 5F ...    121      dc.b    ' |  |___|___|___| |___|  |',CR,LF
+00004E61= 20 7C 20 20 7C 20 ...    122      dc.b    ' |  | 4 | 5 | 6 | | - |  |',CR,LF
+00004E7D= 20 7C 20 20 7C 5F ...    123      dc.b    ' |  |___|___|___| |___|  |',CR,LF
+00004E99= 20 7C 20 20 7C 20 ...    124      dc.b    ' |  | 1 | 2 | 3 | | x |  |',CR,LF
+00004EB5= 20 7C 20 20 7C 5F ...    125      dc.b    ' |  |___|___|___| |___|  |',CR,LF
+00004ED1= 20 7C 20 20 7C 20 ...    126      dc.b    ' |  | 0 |   | = | | / |  |',CR,LF
+00004EED= 20 7C 20 20 7C 5F ...    127      dc.b    ' |  |___|___|___| |___|  |',CR,LF
+00004F09= 20 7C 5F 5F 5F 5F ...    128      dc.b    ' |_______________________|',CR,LF,CR,LF,0
+00004F28                           129  
+00004F28= 0D 0A 45 6E 74 65 ...    130  enter1Msg    dc.b    CR,LF,'Enter First Number: ',0
+00004F3F= 0D 0A 45 6E 74 65 ...    131  enter1aMsg    dc.b    CR,LF,'Enter second Number: ',0
+00004F57= 0D 0A 45 6E 74 65 ...    132  enter2Msg    dc.b    CR,LF,'Enter first digit of Second Number: ',0
+00004F7E= 0D 0A 45 6E 74 65 ...    133  enter2aMsg   dc.b    CR,LF,'Enter second digit of Second Number: ',0
+00004FA6= 0D 0A 45 6E 74 65 ...    134  enterOpMsg   dc.b    CR,LF,'Enter Operator 1(+) 2(-) 3(*) 4(/) 0(exit): ',0
+00004FD5= 0D 0A 52 65 73 75 ...    135  resultMsg    dc.b    CR,LF,'Result: ',0
+00004FE0= 0D 0A 28 70 72 65 ...    136  nextOpMsg    dc.b    CR,LF,'(press enter to continue)',0
+00004FFC= 0D 0A 00                 137  holdMsg      dc.b    CR,LF,'',0
+00004FFF= 0D 0A 52 65 6D 61 ...    138  remainderMsg dc.b    CR,LF,'Remainder: ',0
+0000500D= 0D 0A 65 72 72 6F ...    139  error        dc.b    CR,LF,'error',0
+00005015                           140  
+00005015                           141      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ACIAC               8001
+ACIAD               8003
+ADD                 4C8A
+BKR                 4CCA
+CALCMENU            4D10
+CR                  D
+DIV                 4CBA
+DONE                4CE8
+ECHO                4CFC
+END                 4D0E
+ENTER1AMSG          4F3F
+ENTER1MSG           4F28
+ENTER2AMSG          4F7E
+ENTER2MSG           4F57
+ENTEROPMSG          4FA6
+ERROR               500D
+GETCHAR             4CEA
+HOLDMSG             4FFC
+LF                  A
+MUL                 4CAA
+NEXTOPMSG           4FE0
+OUTCHAR             4CD6
+RDRF                0
+REMAINDERMSG        4FFF
+RESULTMSG           4FD5
+SENDCHAR            4CCC
+START               4C00
+SUB                 4C9A
+TDRE                1

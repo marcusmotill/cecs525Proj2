@@ -3,7 +3,7 @@
 	 ORG      $0
          DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,TRAP_14,TRAP_15
+         DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,BRKPT,TRAP_15
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
@@ -857,15 +857,35 @@ FOO20   CMP.B   #20,D1            D1 = 20 = Call DIV_0
         BNE.S   FOO21            
         BSR     DIV_0            
         RTE
-FOO21   RTE         
+FOO21   CMP.B   #21,D1
+        BNE.S   FOO22
+        BSR     GETLINE
+        MOVE.B  (A1)+,D1
+        MOVE.B  (A1),D3
+        subi    #48,d1
+        subi    #48,d3   
+        MULU    #10,D1
+        ADD.B   D1,D3
+        RTE
+FOO22   CMP.B   #22,D1
+        BNE.S   FOO23
+        BSR     NEWLINE
+        MOVE.B  D3,D0
+        BSR     OUT2X
+FOO23   CMP.B   #23,D1
+        BNE.S   FOO24
+        BSR     NEWLINE
+        MOVE.B  D3,D0
+        BSR     OUT4X
+FOO24   RTE         
 * 
 ************************************************************************* 
 TRAP_14  EQU     *
-         JSR     BRKPT            User application breakpoint
+         BRA     BRKPT            User application breakpoint
          RTE
 *
 ************************************************************************* 
-TRAP_15  JMP     WARM              jump to warm
+TRAP_15  BRA     WARM              
          RTE
 *
 ************************************************************************* 
@@ -1059,21 +1079,21 @@ BUS_ER  EQU     *                 Bus error (group 1) exception
         MOVE.L  A4,-(A7)          Save A4 
         LEA.L   MES8(PC),A4       Point to heading 
         BSR     HEADING           Print it 
-        MOVE.L  (A7)+,A4          Restore A4 
+        MOVE.L  (A7)+,A4          Restore A4  
         BRA.S   GROUP1            Deal with group 1 exception 
 * 
 ADD_ER  EQU     *                 Address error (group 1) exception 
         MOVE.L  A4,-(A7)          Save A4 
         LEA.L   MES9(PC),A4       Point to heading 
         BSR     HEADING           Print it 
-        MOVE.L  (A7)+,A4          Restore A4 
+        MOVE.L  (A7)+,A4          Restore A4
         BRA.S   GROUP1            Deal with group 1 exception 
 * 
 DIV0_ER  EQU     *                   Divide By Zero Exception
         MOVE.L  A4,-(A7)          Save A4 
         LEA.L   MES13(PC),A4       Point to heading 
         BSR     HEADING           Print it 
-        MOVE.L  (A7)+,A4          Restore A4 
+        MOVE.L  (A7)+,A4          Restore A4
         BRA.S   GROUP1            Deal with group 1 exception 
 *
 PRIV_ER   EQU     *                 Privilege Violation Exception
@@ -1081,7 +1101,7 @@ PRIV_ER   EQU     *                 Privilege Violation Exception
         LEA.L   MES14(PC),A4      Point to heading 
         BSR     HEADING           Print it 
         MOVE.L  (A7)+,A4          Restore A4
-        BSR     EX_dis
+        BSR     EX_DIS
         BRA     WARM
         BRA.S   GROUP1            Deal with group 1 exception 
 * 
@@ -1335,7 +1355,7 @@ REGNAME  DC.B     'D0D1D2D3D4D5D6D7'
          DC.B     'SSSR' 
          DC.B     'PC  ',0 
 ERMES1   DC.B     'Non-valid hexadecimal input  ',0 
-ERMES2   DC.B     'Invalid command  ',0 
+ERMES2   DC.B     'Download Complete  ',0 
 ERMES3   DC.B     'Loading error',0 
 ERMES4   DC.B     'Table full  ',0,0 
 ERMES5   DC.B     'Breakpoint not active   ',0,0 
@@ -1350,6 +1370,7 @@ PWORD    DC.B     'PASSWORD',0
 LOGINM1  DC.B     'Enter username: ', 0
 LOGINM2  DC.B     'Enter password: ', 0
 USRERR   DC.B     'Incorrect username', 0
+PSRERR   DC.B     'Incorrect password', 0
 USRSUC   DC.B     'Correct Username', 0
 PWERR   DC.B     'Incorrect password', 0
 PWSUC    DC.B     'Correct Password', 0
@@ -1414,6 +1435,9 @@ DCB2     DC.B    'CON_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
+
+
 
 
 
