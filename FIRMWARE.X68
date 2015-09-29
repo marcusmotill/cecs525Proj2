@@ -3,7 +3,7 @@
 	 ORG      $0
          DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,BRKPT,TRAP_15
+         DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,BRKPT,TRAP_15
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
@@ -30,7 +30,6 @@ CTRL_A   EQU      $01               Control_A forces return to monitor
 STACK    EQU      $4400             Stack_pointer
 ACIA_1   EQU      $8001             Console ACIA control 
 ACIA_2   EQU      ACIA_1            Auxilary ACIA control 
-*X_BASE   EQU      $4000             Start of exception vector table 
 TRAP_16  EQU      $4E4E             Code for TRAP #16 
 MAXCHR   EQU      64                Length of input line buffer  
 * 
@@ -398,15 +397,13 @@ PSPACE   MOVE.B   D0,-(A7)          Print a single space
 * 
 LOAD     MOVE.L   CN_OVEC(A6),-(A7) Save current output device name 
          MOVE.L   CN_IVEC(A6),-(A7) Save current input device name 
-         *MOVE.L   #DCB4,CN_OVEC(A6) Set up aux ACIA as output 
-         *MOVE.L   #DCB3,CN_IVEC(A6) Set up aux ACIA as input 
          ADD.B    #1,ECHO(A6)       Turn off character echo 
          BSR      NEWLINE           Send newline to host 
          BSR      DELAY             Wait for host to "settle" 
          BSR      DELAY 
          MOVE.L   BUFFPT(A6),A4     Any string in the line buffer is 
 LOAD1    MOVE.B   (A4)+,D0          transmitted to the host computer 
-         BSR      PUTCHAR           before the loading begins 
+         *sBSR      PUTCHAR           before the loading begins 
          CMP.B    #CR,D0            Read from the buffer until EOL 
          BNE      LOAD1 
          BSR      NEWLINE           Send newline before loading 
@@ -422,11 +419,11 @@ LOAD3    EQU      *                 Exit point from LOAD
          MOVE.L   (A7)+,CN_IVEC(A6) Clean up by restoring input device 
          MOVE.L   (A7)+,CN_OVEC(A6) and output device name 
          CLR.B    ECHO(A6)          Restore input character echo 
-         BTST   #0,D7             Test for input errors 
+         BTST     #0,D7             Test for input errors 
          BEQ.S    LOAD4             If no I/P error then look at checksum 
          LEA.L    ERMES1(PC),A4     Else point to error message 
          BSR      PSTRING           Print it 
-LOAD4    BTST   #3,D7             Test for checksum error 
+LOAD4    BTST     #3,D7             Test for checksum error 
          BEQ.S    LOAD5             If clear then exit 
          LEA.L    ERMES3(PC),A4     Else point to error message 
          BSR      PSTRING           Print it and return 
@@ -1354,7 +1351,7 @@ REGNAME  DC.B     'D0D1D2D3D4D5D6D7'
          DC.B     'SSSR' 
          DC.B     'PC  ',0 
 ERMES1   DC.B     'Non-valid hexadecimal input  ',0 
-ERMES2   DC.B     'Download Complete  ',0 
+ERMES2   DC.B     'Invalid Command  ',0 
 ERMES3   DC.B     'Loading error',0 
 ERMES4   DC.B     'Table full  ',0,0 
 ERMES5   DC.B     'Breakpoint not active   ',0,0 
@@ -1371,7 +1368,7 @@ LOGINM2  DC.B     'Enter password: ', 0
 USRERR   DC.B     'Incorrect username', 0
 PSRERR   DC.B     'Incorrect password', 0
 USRSUC   DC.B     'Correct Username', 0
-PWERR   DC.B     'Incorrect password', 0
+PWERR    DC.B     'Incorrect password', 0
 PWSUC    DC.B     'Correct Password', 0
 MEMFMSG  DC.B     'MEMORY BAD AT: ',0
 MEMGMSG  DC.B      'ALL RAM GOOD', 0
