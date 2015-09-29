@@ -398,8 +398,8 @@ PSPACE   MOVE.B   D0,-(A7)          Print a single space
 * 
 LOAD     MOVE.L   CN_OVEC(A6),-(A7) Save current output device name 
          MOVE.L   CN_IVEC(A6),-(A7) Save current input device name 
-         MOVE.L   #DCB4,CN_OVEC(A6) Set up aux ACIA as output 
-         MOVE.L   #DCB3,CN_IVEC(A6) Set up aux ACIA as input 
+         *MOVE.L   #DCB4,CN_OVEC(A6) Set up aux ACIA as output 
+         *MOVE.L   #DCB3,CN_IVEC(A6) Set up aux ACIA as input 
          ADD.B    #1,ECHO(A6)       Turn off character echo 
          BSR      NEWLINE           Send newline to host 
          BSR      DELAY             Wait for host to "settle" 
@@ -1434,6 +1434,7 @@ DCB2     DC.B    'CON_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
 
 
 
