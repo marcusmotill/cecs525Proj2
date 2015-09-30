@@ -4,19 +4,19 @@
          DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,BRKPT,TRAP_15,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
-         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+*         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
 *                                   Symbol equates 
 BS       EQU      $08               Back_space 
 CR       EQU      $0D               Carriage_return 
@@ -60,26 +60,31 @@ MAX_RAM  DC.L     $004100           maximum RAM address to be checked
          ORG      $1000             Monitor Origin
 RESET:   EQU      *
          LEA.L    DATA,A6           A6 points to data area 
-	      MOVE.L	A6,TSK_T+56(A6)   initialize A6 in the regster Frame
+	     MOVE.L	A6,TSK_T+56(A6)   initialize A6 in the regster Frame
          CLR.L    UTAB(A6)          Reset pointer to user extension table 
          CLR.B    ECHO(A6)          Set automatic character echo 
          CLR.B    U_CASE(A6)        Clear case conversion flag (UC<-LC) 
          BSR.S    SETACIA           Setup ACIAs 
-	      BSR.L	   B_CLR		         what change did i do here
+	     BSR.L	   B_CLR		         what change did i do here
          BSR.L    SET_DCB           Setup DCB table in RAM
          BSR.S    NEWLINE
          LEA.L    BANNER(PC),A4    
          BSR.S    PSTRING
          BSR.S    NEWLINE           
-	      LEA.L	   MODIFY(PC),A4
+	     LEA.L	   MODIFY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-	      LEA.L	   WHY(PC),A4
+	     LEA.L	   WHY(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-	      LEA.L	   WHERE(PC),A4
+	     LEA.L	   WHERE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
+         MOVE.L   #$3000,A0         A0 points to extension ROM 
+         MOVE.L   (A0),D0           Read first longword in extension ROM 
+         CMP.L    #'ROM2',D0        If extension begins with 'ROM2' then 
+         BNE.S    NO_EXT            call the subroutine at EXT_ROM+8 
+         JSR      8(A0)             else continue 
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine 
          CLR.L    D7                Warm entry point - clear error flag 
@@ -545,6 +550,22 @@ DELAY1   SUB.L     #1,D0            Count down         (8 clk cycles)
          MOVEM.L   (A7)+,D0/A4      Restore working registers 
          RTS 
 * 
+* AUX_IN and AUX_OUT are simplified versions of CON_IN and 
+* CON_OUT for use with the port to the host processor 
+
+AUX_IN    LEA.L   12(A0),A1       Get pointer to aux ACIA from DCB 
+          MOVE.L  (A1),A1         Get address of aux ACIA 
+AUX_IN1   BTST.B  #0,(A1)         Test for data ready 
+          BEQ     AUX_IN1         Repeat until ready 
+          MOVE.B  2(A1),D0        Read input 
+          RTS 
+  
+AUX_OUT   LEA.L   12(A0),A1       Get pointer to aux ACIA from DCB 
+          MOVE.L  (A1),A1         Get address of aux ACIA 
+AUX_OT1   BTST.B  #1,(A1)         Test for ready to transmit 
+          BEQ     AUX_OT1         Repeat until transmitter ready 
+          MOVE.B  D0,2(A1)        Transmit data 
+          RTS 
 ************************************************************************* 
 * 
 *  This routine sets up the system DCBs in RAM using the information 
@@ -1409,6 +1430,12 @@ DCB1     DC.B    'CON_IN  '          Device name (8 bytes)
 DCB2     DC.B    'CON_OUT ' 
          DC.L    CON_OUT,ACIA_1 
          DC.W    2 
+DCB3     DC.B    'AUX_IN  ' 
+         DC.L    AUX_IN,ACIA_2 
+         DC.W    2 
+DCB4     DC.B    'AUX_OUT ' 
+         DC.L    AUX_OUT,ACIA_2 
+         DC.W    2          
 
 ************************************************************************* 
 * 
@@ -1431,6 +1458,8 @@ DCB2     DC.B    'CON_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
+
 
 
 
