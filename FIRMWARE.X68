@@ -80,15 +80,8 @@ RESET:   EQU      *
 	     LEA.L	   WHERE(PC),A4
          BSR.S    PSTRING
          BSR.S    NEWLINE
-         MOVE.L   #$3000,A0         A0 points to extension ROM 
-         MOVE.L   (A0),D0           Read first longword in extension ROM 
-         CMP.L    #'ROM2',D0        If extension begins with 'ROM2' then 
-         BNE.S    NO_EXT            call the subroutine at EXT_ROM+8 
-         JSR      8(A0)             else continue 
 NO_EXT:  NOP                        Two NOPs to allow for a future 
          NOP                        call to an initialization routine 
-         CLR.L    D7                Warm entry point - clear error flag 
-         JSR      LOGIN             jump tp lgin routine           
 WARM:    CLR.L    D7                Warm entry point - clear error flag 
          BSR.S    NEWLINE           Print a newline 
          BSR.S    GETLINE           Get a command line 
@@ -962,122 +955,6 @@ HELP     LEA.L    JUMPHELP,A4     printing strings for command help
          BSR.W    PSTRING
          RTS
 
-*      
-*************************************************************************
-LOGIN    CMP.B    #2,D4             check if the user has attempts left
-         BEQ      QUIT              if three incorrect attempts lock out
-         LEA.L    LOGINM1,A4        print message
-         BSR.W    PSTRING           
-         BSR.W    NEWLINE
-         BSR      GETLINE           get input
-         LEA.L    UNAME,A4          load correct username
-LOGIN1   MOVE.B   (A1)+,D5          move character to D5 and inc A5
-         CMP.B    (A4)+,D5          if character matches then continue
-         BEQ      LOGIN1            iterate through checking each char
-         CMP.B    #CR,-(A1)         check for carriage return
-         BNE      WRONG             if not then wrong input
-         CMP.B    #NUL,-(A4)        check for end of stored string
-         BNE      WRONG             if not then wrong input
-         LEA.L    USRSUC,A4         print success
-         BSR.W    PSTRING
-         BSR.W    NEWLINE
-         LEA.L    LOGINM2,A4
-         BSR.W    PSTRING
-         BSR.W    NEWLINE
-         MOVE.B   #1,D6             flag to let output know to hide password
-         BSR.W    GETLINE
-         MOVE.B   #0,D6             stop hiding output
-         LEA.L    PWORD,A4
-LOGIN2   MOVE.B   (A1)+,D5          compare password with correct password
-         CMP.B    (A4)+,D5
-         BEQ      LOGIN2            iterate through checking each char
-         CMP.B    #CR,-(A1)         check for carriage return
-         BNE      WRONG             if not then wrong input
-         CMP.B    #NUL,-(A4)        check for end of stored string
-         BNE      WRONGPW           if not then wrong input
-         LEA.L    PWSUC,A4
-         BRA      PSTRING
-         LEA.L    LOGINM1,A4
-         BSR.W    PSTRING           print success
-         BSR.W    NEWLINE
-         BRA      WARM              jump to warm if correct
-
-WRONG    LEA.L    USRERR,A4         print message
-         BSR.W    PSTRING
-         BSR.W    NEWLINE
-         ADD.B    #1,D4             inc attempts counter
-         BRA      LOGIN
-
-WRONGPW  LEA.L    PWERR,A4          print message
-         BSR.W    PSTRING
-         BSR.W    NEWLINE
-         ADD.B    #1,D4             inc attempts counter
-         BRA      LOGIN
-
-UPASS    LEA.L    USRSUC,A4
-         BRA      PSTRING  
-
-QUIT     JMP      QUIT
-
-*
-************************************************************************* 
-TV       MOVE.L   MIN_RAM,A4        starting at MIN_RAM
-         MOVE.B   #0,D6             error flag 
-LOOPRAM  MOVE.W   #0,D1             
-         MOVE.W   D1,(A4)
-         LEA.L    2(A4),A4          Point to next address to display
-         CMP.L    MAX_RAM,A4        if not the end of ram, continue
-         BNE      LOOPRAM
-         MOVE.L   MIN_RAM,A4        resetting
-CHECK1   MOVE.W   (A4),D1
-         CMP.W    #0,D1             if mem is not zero there is an issue
-         BNE      MEMFAIL           
-CHECK2   LEA.L    2(A4),A4          Point to next address to read
-         CMP.L    MAX_RAM,A4        if not the end of ram, continue
-         BNE      CHECK1
-         MOVE.L   MIN_RAM,A4
-LOOPRAM1 MOVE.W   #65535,D1         loading all ram with 1's
-         MOVE.W   D1,(A4)
-         LEA.L    2(A4),A4          Point to next address to display
-         CMP.L    MAX_RAM,A4
-         BNE      LOOPRAM1
-         MOVE.L   MIN_RAM,A4
-CHECK3   MOVE.W   (A4),D1           move address to data reg
-         CMP.W    #65535,D1         comparing all ram with 1's
-         BNE      MEMFAIL2          mem fail if not all 1's
-CHECK4   LEA.L    2(A4),A4          Point to next address to read
-         CMP.L    MAX_RAM,A4        if not the end of ram, continue
-         BNE      CHECK3
-         CMP.B    #0,D6             not issue flag
-         BEQ      MEMGOOD           print if 0
-         RTS
-
-MEMFAIL  MOVE.L  A4,-(A7)          Save A4 
-         MOVE.L  #1,D6             setting error flag
-         BSR.W   NEWLINE
-         LEA.L   MEMFMSG,A4
-         BSR.W   PSTRING
-         MOVE.L  (A7)+,A4          Restore A4
-         MOVE.L  A4,D0             loading addres to D0
-         BSR.W    OUT8X            print contents of D0
-         BRA     CHECK2
-
-MEMFAIL2 MOVE.L  A4,-(A7)          Save A4 
-         MOVE.L  #1,D6             setting error flag
-         BSR.W   NEWLINE
-         LEA.L   MEMFMSG,A4
-         BSR.W   PSTRING
-         MOVE.L  (A7)+,A4          Restore A4
-         MOVE.L  A4,D0             loading address to D0
-         BSR.W    OUT8X            print D0
-         BRA     CHECK4         
- 
-MEMGOOD  LEA.L  MEMGMSG,A4         memory has no errors
-         BSR.W  PSTRING
-         RTS
-*************************************************************************
-* 
-*  Exception handling routines 
 * 
 *************************************************************************         
 * 
@@ -1382,17 +1259,6 @@ MEMHELP  DC.B     'MEMORY <address> examines contents of address> and allows the
 LOADHELP DC.B     'LOAD <string> loads S1/S2 records from the host. <string> is sent to host', 0
 TVHELP   DC.B     'TV checks all RAM addresses from $4000 to $40FE. Reports corrupt memory addresses', 0
 ERMES7   DC.B     ' Range error',0
-UNAME    DC.B     'USER', 0
-PWORD    DC.B     'PASSWORD',0
-LOGINM1  DC.B     'Enter username: ', 0
-LOGINM2  DC.B     'Enter password: ', 0
-USRERR   DC.B     'Incorrect username', 0
-PSRERR   DC.B     'Incorrect password', 0
-USRSUC   DC.B     'Correct Username', 0
-PWERR    DC.B     'Incorrect password', 0
-PWSUC    DC.B     'Correct Password', 0
-MEMFMSG  DC.B     'MEMORY BAD AT: ',0
-MEMGMSG  DC.B      'ALL RAM GOOD', 0
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
 *         a string length + number of characters to match + the string 
@@ -1414,9 +1280,6 @@ COMTAB   DC.B     4,4              JUMP <address> causes execution to
          DC.B    4,4               HELP 
          DC.B    'HELP'            
          DC.L    HELP-COMTAB      
-         DC.B    2,2
-         DC.B    'TV'
-         DC.L    TV-COMTAB
          DC.B    0,0 
 * 
 ************************************************************************* 
@@ -1458,6 +1321,7 @@ DCB4     DC.B    'AUX_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
 
 
 
