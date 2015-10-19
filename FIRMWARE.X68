@@ -1000,9 +1000,9 @@ PRIV_ER   EQU     *                 Privilege Violation Exception
         BRA.S   GROUP1            Deal with group 1 exception 
 * 
 BRKPT   EQU     *                   Deal with breakpoint 
-        MOVEM.L D0-D7/A0-A6,-(A7)   Save all registers 
-        BSR     BR_CLR              Clear breakpoints in code 
-        MOVEM.L (A7)+,D0-D7/A0-A6   Restore registers 
+        *MOVEM.L D0-D7/A0-A6,-(A7)   Save all registers 
+        *BSR     BR_CLR              Clear breakpoints in code 
+        *MOVEM.L (A7)+,D0-D7/A0-A6   Restore registers 
         BSR.S   GROUP2            Treat as group 2 exception 
         LEA.L   MES11(PC),A4      Point to heading 
         BSR     HEADING           Print it 
