@@ -1,0 +1,1769 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 10/23/15 4:55:12 PM
+
+00000000                             1  *        TSBUG2 - 68000 monitor - version of 05 January 2010 
+00000000                             2  
+00000000                             3       ORG      $0
+00000000= 00004400 00001000 ...      4           DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+00000040= 00001C7E 00001C7E ...      5           DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+00000080= 0000161E 00001C7E ...      6           DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,BRKPT,TRAP_15,X_UN
+000000C4                             7  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                             8  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                             9  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            10  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            11  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            12  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            13  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            14  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            15  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            16  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            17  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            18  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            19  *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+000000C4                            20  *                                   Symbol equates 
+000000C4  =00000008                 21  BS       EQU      $08               Back_space 
+000000C4  =0000000D                 22  CR       EQU      $0D               Carriage_return 
+000000C4  =00000000                 23  NUL      EQU      $00               NUL character
+000000C4  =0000000A                 24  LF       EQU      $0A               Line_feed 
+000000C4  =00000020                 25  SPACE    EQU      $20               Space 
+000000C4  =00000057                 26  WAIT     EQU      'W'               Wait character (to suspend output) 
+000000C4  =0000001B                 27  ESC      EQU      $1B               ASCII escape character (used by TM) 
+000000C4  =00000001                 28  CTRL_A   EQU      $01               Control_A forces return to monitor 
+000000C4                            29  *                                   Device addresses 
+000000C4  =00004400                 30  STACK    EQU      $4400             Stack_pointer
+000000C4  =00008001                 31  ACIA_1   EQU      $8001             Console ACIA control 
+000000C4  =00008001                 32  ACIA_2   EQU      ACIA_1            Auxilary ACIA control 
+000000C4  =00004E4E                 33  TRAP_16  EQU      $4E4E             Code for TRAP #16 
+000000C4  =00000040                 34  MAXCHR   EQU      64                Length of input line buffer  
+000000C4                            35  * 
+000000C4  =00004800                 36  DATA     EQU      $4800             Data origin 
+000000C4                            37  LNBUFF   DS.B     MAXCHR            Input line buffer
+00000104  =00000103                 38  BUFFEND  EQU      LNBUFF+MAXCHR-1   End of line buffer 
+00000104                            39  BUFFPT   DS.L     1                 Pointer to line buffer 
+00000108                            40  PARAMTR  DS.L     1                 Last parameter from line buffer 
+0000010C                            41  ECHO     DS.B     1                 When clear this enable input echo 
+0000010D                            42  U_CASE   DS.B     1                 Flag for upper case conversion 
+0000010E                            43  UTAB     DS.L     1                 Pointer to user command table 
+00000112                            44  CN_IVEC  DS.L     1                 Pointer to console input DCB 
+00000116                            45  CN_OVEC  DS.L     1                 Pointer to console output DCB 
+0000011A                            46  TSK_T    DS.W     37                Frame for D0-D7, A0-A6, USP, SSP, SW, PC 
+00000164                            47  BP_TAB   DS.W     24                Breakpoint table 
+00000194                            48  FIRST    DS.B     512               DCB area 
+00000394                            49  BUFFER   DS.B     256               256 bytes for I/O buffer 
+00000494= 00004000                  50  MIN_RAM  DC.L     $004000           minimum RAM address to be checked
+00000498= 00004100                  51  MAX_RAM  DC.L     $004100           maximum RAM address to be checked
+0000049C                            52  * 
+0000049C                            53  ************************************************************************* 
+0000049C                            54  * 
+0000049C                            55  *  This is the main program which assembles a command in the line 
+0000049C                            56  *  buffer, removes leading/embedded spaces and interprets it by matching 
+0000049C                            57  *  it with a command in the user table or the built-in table COMTAB 
+0000049C                            58  *  All variables are specified with respect to A6 
+0000049C                            59  *
+00001000                            60           ORG      $1000             Monitor Origin
+00001000  =00001000                 61  RESET:   EQU      *
+00001000  4DF8 4800                 62           LEA.L    DATA,A6           A6 points to data area 
+00001004  2D4E 0152                 63           MOVE.L A6,TSK_T+56(A6)   initialize A6 in the regster Frame
+00001008  42AE 010E                 64           CLR.L    UTAB(A6)          Reset pointer to user extension table 
+0000100C  422E 010C                 65           CLR.B    ECHO(A6)          Set automatic character echo 
+00001010  422E 010D                 66           CLR.B    U_CASE(A6)        Clear case conversion flag (UC<-LC) 
+00001014  613E                      67           BSR.S    SETACIA           Setup ACIAs 
+00001016  6100 0592                 68           BSR.L     B_CLR                 what change did i do here
+0000101A  6100 0416                 69           BSR.L    SET_DCB           Setup DCB table in RAM
+0000101E  614A                      70           BSR.S    NEWLINE
+00001020  49FA 0C6C                 71           LEA.L    BANNER(PC),A4    
+00001024  6154                      72           BSR.S    PSTRING
+00001026  6142                      73           BSR.S    NEWLINE           
+00001028  49FA 0C7E                 74           LEA.L     MODIFY(PC),A4
+0000102C  614C                      75           BSR.S    PSTRING
+0000102E  613A                      76           BSR.S    NEWLINE
+00001030  49FA 0CA4                 77           LEA.L     WHY(PC),A4
+00001034  6144                      78           BSR.S    PSTRING
+00001036  6132                      79           BSR.S    NEWLINE
+00001038  49FA 0CD4                 80           LEA.L     WHERE(PC),A4
+0000103C  613C                      81           BSR.S    PSTRING
+0000103E  612A                      82           BSR.S    NEWLINE
+00001040  4E71                      83  NO_EXT:  NOP                        Two NOPs to allow for a future 
+00001042  4E71                      84           NOP                        call to an initialization routine 
+00001044  4287                      85  WARM:    CLR.L    D7                Warm entry point - clear error flag 
+00001046  6122                      86           BSR.S    NEWLINE           Print a newline 
+00001048  6146                      87           BSR.S    GETLINE           Get a command line 
+0000104A  6100 007A                 88           BSR      TIDY              Tidy up input buffer contents 
+0000104E  6100 00B8                 89           BSR      EXECUTE           Interpret command 
+00001052  60F0                      90           BRA      WARM              Repeat indefinitely 
+00001054                            91  * 
+00001054                            92  ************************************************************************* 
+00001054                            93  * 
+00001054                            94  *  Some initialization and basic routines 
+00001054                            95  * 
+00001054  =00001054                 96  SETACIA  EQU      *                 Setup ACIA parameters 
+00001054  41F9 00008001             97           LEA.L    ACIA_1,A0         A0 points to console ACIA 
+0000105A  10BC 0003                 98           MOVE.B   #$03,(A0)         Reset ACIA1 
+0000105E  10BC 0019                 99           MOVE.B   #$19,(A0)         Set up ACIA1 constants (no IRQ, 
+00001062  117C 0019 0001           100           MOVE.B   #$19,1(A0)        RTS* low, 8 bit, no parity, 1 stop) 
+00001068  4E75                     101           RTS                        Return 
+0000106A                           102  * 
+0000106A  =0000106A                103  NEWLINE  EQU      *                 Move cursor to start of newline 
+0000106A  48E7 0008                104           MOVEM.L  A4,-(A7)          Save A4 
+0000106E  49FA 0CB8                105           LEA.L    CRLF(PC),A4       Point to CR/LF string 
+00001072  6106                     106           BSR.S    PSTRING           Print it 
+00001074  4CDF 1000                107           MOVEM.L  (A7)+,A4          Restore A4 
+00001078  4E75                     108           RTS                        Return 
+0000107A                           109  * 
+0000107A  =0000107A                110  PSTRING  EQU      *                 Display the string pointed at by A4 
+0000107A  2F00                     111           MOVE.L   D0,-(A7)          Save D0 
+0000107C  101C                     112  PS1      MOVE.B   (A4)+,D0          Get character to be printed 
+0000107E  6706                     113           BEQ.S    PS2               If null then return 
+00001080  6100 04C8                114           BSR      PUTCHAR           Else print it 
+00001084  60F6                     115           BRA      PS1               Continue 
+00001086  201F                     116  PS2      MOVE.L   (A7)+,D0          Restore D0 and exit 
+00001088  4E75                     117           RTS 
+0000108A                           118  * 
+0000108A  61DE                     119  HEADING  BSR      NEWLINE           Same as PSTRING but with newline 
+0000108C  61EC                     120           BSR      PSTRING 
+0000108E  60DA                     121           BRA      NEWLINE 
+00001090                           122  * 
+00001090                           123  ************************************************************************* 
+00001090                           124  * 
+00001090                           125  *  GETLINE  inputs a string of characters into a line buffer
+00001090                           126  *           A3 points to next free entry in line buffer 
+00001090                           127  *           A2 points to end of buffer 
+00001090                           128  *           A1 points to start of buffer 
+00001090                           129  *           D0 holds character to be stored 
+00001090                           130  * 
+00001090  43EE 00C4                131  GETLINE  LEA.L    LNBUFF(A6),A1     A1 points to start of line buffer 
+00001094  47D1                     132           LEA.L    (A1),A3           A3 points to start (initially) 
+00001096  45E9 0040                133           LEA.L    MAXCHR(A1),A2     A2 points to end of buffer 
+0000109A  6100 0462                134  GETLN2   BSR      GETCHAR           Get a character 
+0000109E  B03C 0001                135           CMP.B    #CTRL_A,D0        If control_A then reject this line 
+000010A2  671E                     136           BEQ.S    GETLN5            and get another line 
+000010A4  B03C 0008                137           CMP.B    #BS,D0            If back_space then move back pointer 
+000010A8  660A                     138           BNE.S    GETLN3            Else skip past wind-back routine 
+000010AA  B7C9                     139           CMP.L    A1,A3             First check for empty buffer 
+000010AC  67EC                     140           BEQ      GETLN2            If buffer empty then continue 
+000010AE  47EB FFFF                141           LEA      -1(A3),A3         Else decrement buffer pointer 
+000010B2  60E6                     142           BRA      GETLN2            and continue with next character 
+000010B4  16C0                     143  GETLN3   MOVE.B   D0,(A3)+          Store character and update pointer 
+000010B6  B03C 000D                144           CMP.B    #CR,D0            Test for command terminator 
+000010BA  6602                     145           BNE.S    GETLN4            If not CR then skip past exit 
+000010BC  60AC                     146           BRA      NEWLINE           Else new line before next operation 
+000010BE  B7CA                     147  GETLN4   CMP.L    A2,A3             Test for buffer overflow 
+000010C0  66D8                     148           BNE      GETLN2            If buffer not full then continue 
+000010C2  61A6                     149  GETLN5   BSR      NEWLINE           Else move to next line and 
+000010C4  60CA                     150           BRA      GETLINE           repeat this routine 
+000010C6                           151  * 
+000010C6                           152  ************************************************************************* 
+000010C6                           153  * 
+000010C6                           154  *  TIDY cleans up the line buffer by removing leading spaces and multiple 
+000010C6                           155  *       spaces between parameters. At the end of TIDY, BUFFPT points to 
+000010C6                           156  *       the first parameter following the command. 
+000010C6                           157  *       A0 = pointer to line buffer. A1 = pointer to cleaned up buffer 
+000010C6                           158  * 
+000010C6  41EE 00C4                159  TIDY     LEA.L    LNBUFF(A6),A0     A0 points to line buffer 
+000010CA  43D0                     160           LEA.L    (A0),A1           A1 points to start of line buffer 
+000010CC  1018                     161  TIDY1    MOVE.B   (A0)+,D0          Read character from line buffer 
+000010CE  B03C 0020                162           CMP.B    #SPACE,D0         Repeat until the first non-space 
+000010D2  67F8                     163           BEQ      TIDY1             character is found 
+000010D4  41E8 FFFF                164           LEA.L    -1(A0),A0         Move pointer back to first char 
+000010D8  1018                     165  TIDY2    MOVE.B   (A0)+,D0          Move the string left to remove 
+000010DA  12C0                     166           MOVE.B   D0,(A1)+          any leading spaces 
+000010DC  B03C 0020                167           CMP.B    #SPACE,D0         Test for embedded space 
+000010E0  660A                     168           BNE.S    TIDY4             If not space then test for EOL 
+000010E2  0C18 0020                169  TIDY3    CMP.B    #SPACE,(A0)+      If space skip multiple embedded 
+000010E6  67FA                     170           BEQ      TIDY3             spaces 
+000010E8  41E8 FFFF                171           LEA.L    -1(A0),A0         Move back pointer 
+000010EC  B03C 000D                172  TIDY4    CMP.B    #CR,D0            Test for end_of_line (EOL) 
+000010F0  66E6                     173           BNE      TIDY2             If not EOL then read next char 
+000010F2  41EE 00C4                174           LEA.L    LNBUFF(A6),A0     Restore buffer pointer 
+000010F6  0C10 000D                175  TIDY5    CMP.B    #CR,(A0)          Test for EOL 
+000010FA  6706                     176           BEQ.S    TIDY6             If EOL then exit 
+000010FC  0C18 0020                177           CMP.B    #SPACE,(A0)+      Test for delimiter 
+00001100  66F4                     178           BNE      TIDY5             Repeat until delimiter or EOL 
+00001102  2D48 0104                179  TIDY6    MOVE.L   A0,BUFFPT(A6)     Update buffer pointer 
+00001106  4E75                     180           RTS 
+00001108                           181  * 
+00001108                           182  ************************************************************************* 
+00001108                           183  * 
+00001108                           184  *  EXECUTE matches the first command in the line buffer with the 
+00001108                           185  *  commands in a command table. An external table pointed at by 
+00001108                           186  *  UTAB is searched first and then the in-built table, COMTAB. 
+00001108                           187  * 
+00001108  4AAE 010E                188  EXECUTE  TST.L    UTAB(A6)          Test pointer to user table 
+0000110C  670C                     189           BEQ.S    EXEC1             If clear then try built-in table 
+0000110E  266E 010E                190           MOVE.L   UTAB(A6),A3       Else pick up pointer to user table 
+00001112  6120                     191           BSR.S    SEARCH            Look for command in user table 
+00001114  6404                     192           BCC.S    EXEC1             If not found then try internal table 
+00001116  2653                     193           MOVE.L   (A3),A3           Else get absolute address of command 
+00001118  4ED3                     194           JMP      (A3)              from user table and execute it 
+0000111A                           195  * 
+0000111A  47FA 0EE4                196  EXEC1    LEA.L    COMTAB(PC),A3     Try built-in command table 
+0000111E  6114                     197           BSR.S    SEARCH            Look for command in built-in table 
+00001120  6508                     198           BCS.S    EXEC2             If found then execute command 
+00001122  49FA 0D17                199           LEA.L    ERMES2(PC),A4     Else print "invalid command" 
+00001126  6000 FF52                200           BRA.L    PSTRING           and return 
+0000112A  2653                     201  EXEC2    MOVE.L   (A3),A3           Get the relative command address 
+0000112C  49FA 0ED2                202           LEA.L    COMTAB(PC),A4     pointed at by A3 and add it to 
+00001130  D7CC                     203           ADD.L    A4,A3             the PC to generate the actual 
+00001132  4ED3                     204           JMP      (A3)              command address. Then execute it. 
+00001134                           205  * 
+00001134  =00001134                206  SEARCH   EQU      *                 Match the command in the line buffer 
+00001134  4280                     207           CLR.L    D0                with command table pointed at by A3 
+00001136  1013                     208           MOVE.B   (A3),D0           Get the first character in the 
+00001138  6734                     209           BEQ.S    SRCH7             current entry. If zero then exit 
+0000113A  49F3 0006                210           LEA.L    6(A3,D0.W),A4     Else calculate address of next entry 
+0000113E  122B 0001                211           MOVE.B   1(A3),D1          Get number of characters to match 
+00001142  4BEE 00C4                212           LEA.L    LNBUFF(A6),A5     A5 points to command in line buffer 
+00001146  142B 0002                213           MOVE.B   2(A3),D2          Get first character in this entry 
+0000114A  B41D                     214           CMP.B    (A5)+,D2          from the table and match with buffer 
+0000114C  6704                     215           BEQ.S    SRCH3             If match then try rest of string 
+0000114E  264C                     216  SRCH2    MOVE.L   A4,A3             Else get address of next entry 
+00001150  60E2                     217           BRA      SEARCH            and try the next entry in the table 
+00001152  5301                     218  SRCH3    SUB.B    #1,D1             One less character to match 
+00001154  670E                     219           BEQ.S    SRCH6             If match counter zero then all done 
+00001156  47EB 0003                220           LEA.L    3(A3),A3          Else point to next character in table 
+0000115A  141B                     221  SRCH4    MOVE.B   (A3)+,D2          Now match a pair of characters 
+0000115C  B41D                     222           CMP.B    (A5)+,D2 
+0000115E  66EE                     223           BNE      SRCH2             If no match then try next entry 
+00001160  5301                     224           SUB.B    #1,D1             Else decrement match counter and 
+00001162  66F6                     225           BNE      SRCH4             repeat until no chars left to match 
+00001164  47EC FFFC                226  SRCH6    LEA.L    -4(A4),A3         Calculate address of command entry 
+00001168  003C 0001                227           OR.B     #1,CCR            point. Mark carry flag as success 
+0000116C  4E75                     228           RTS                        and return 
+0000116E  023C 00FE                229  SRCH7    AND.B    #$FE,CCR          Fail - clear carry to indicate 
+00001172  4E75                     230           RTS                        command not found and return 
+00001174                           231  * 
+00001174                           232  ************************************************************************* 
+00001174                           233  * 
+00001174                           234  *  Basic input routines 
+00001174                           235  *  HEX    =  Get one   hexadecimal character  into D0 
+00001174                           236  *  BYTE   =  Get two   hexadecimal characters into D0 
+00001174                           237  *  WORD   =  Get four  hexadecimal characters into D0 
+00001174                           238  *  LONGWD =  Get eight hexadecimal characters into D0 
+00001174                           239  *  PARAM  =  Get a longword from the line buffer into D0 
+00001174                           240  *  Bit 0 of D7 is set to indicate a hexadecimal input error 
+00001174                           241  * 
+00001174  6100 0388                242  HEX      BSR      GETCHAR           Get a character from input device 
+00001178  0400 0030                243           SUB.B    #$30,D0           Convert to binary 
+0000117C  6B0E                     244           BMI.S    NOT_HEX           If less than $30 then exit with error 
+0000117E  B03C 0009                245           CMP.B    #$09,D0           Else test for number (0 to 9) 
+00001182  6F0C                     246           BLE.S    HEX_OK            If number then exit - success 
+00001184  5F00                     247           SUB.B    #$07,D0           Else convert letter to hex 
+00001186  B03C 000F                248           CMP.B    #$0F,D0           If character in range "A" to "F" 
+0000118A  6F04                     249           BLE.S    HEX_OK            then exit successfully 
+0000118C  8E3C 0001                250  NOT_HEX  OR.B     #1,D7             Else set error flag 
+00001190  4E75                     251  HEX_OK   RTS                        and return 
+00001192                           252  * 
+00001192  2F01                     253  BYTE     MOVE.L   D1,-(A7)          Save D1 
+00001194  61DE                     254           BSR      HEX               Get first hex character 
+00001196  E900                     255           ASL.B    #4,D0             Move it to MS nybble position 
+00001198  1200                     256           MOVE.B   D0,D1             Save MS nybble in D1 
+0000119A  61D8                     257           BSR      HEX               Get second hex character 
+0000119C  D001                     258           ADD.B    D1,D0             Merge MS and LS nybbles 
+0000119E  221F                     259           MOVE.L   (A7)+,D1          Restore D1 
+000011A0  4E75                     260           RTS 
+000011A2                           261  * 
+000011A2  61EE                     262  WORD     BSR      BYTE              Get upper order byte 
+000011A4  E140                     263           ASL.W    #8,D0             Move it to MS position 
+000011A6  60EA                     264           BRA      BYTE              Get LS byte and return 
+000011A8                           265  * 
+000011A8  61F8                     266  LONGWD   BSR      WORD              Get upper order word 
+000011AA  4840                     267           SWAP     D0                Move it to MS position 
+000011AC  60F4                     268           BRA      WORD              Get lower order word and return 
+000011AE                           269  * 
+000011AE                           270  *  PARAM reads a parameter from the line buffer and puts it in both 
+000011AE                           271  *  PARAMTR(A6) and D0. Bit 1 of D7 is set on error. 
+000011AE                           272  * 
+000011AE  2F01                     273  PARAM    MOVE.L   D1,-(A7)          Save D1 
+000011B0  4281                     274           CLR.L    D1                Clear input accumulator 
+000011B2  206E 0104                275           MOVE.L   BUFFPT(A6),A0     A0 points to parameter in buffer 
+000011B6  1018                     276  PARAM1   MOVE.B   (A0)+,D0          Read character from line buffer 
+000011B8  B03C 0020                277           CMP.B    #SPACE,D0         Test for delimiter 
+000011BC  6720                     278           BEQ.S    PARAM4            The permitted delimiter is a 
+000011BE  B03C 000D                279           CMP.B    #CR,D0            space or a carriage return 
+000011C2  671A                     280           BEQ.S    PARAM4            Exit on either space or C/R 
+000011C4  E981                     281           ASL.L    #4,D1             Shift accumulated result 4 bits left 
+000011C6  0400 0030                282           SUB.B    #$30,D0           Convert new character to hex 
+000011CA  6B1E                     283           BMI.S    PARAM5            If less than $30 then not-hex 
+000011CC  B03C 0009                284           CMP.B    #$09,D0           If less than 10 
+000011D0  6F08                     285           BLE.S    PARAM3            then continue 
+000011D2  5F00                     286           SUB.B    #$07,D0           Else assume $A - $F 
+000011D4  B03C 000F                287           CMP.B    #$0F,D0           If more than $F 
+000011D8  6E10                     288           BGT.S    PARAM5            then exit to error on not-hex 
+000011DA  D200                     289  PARAM3   ADD.B    D0,D1             Add latest nybble to total in D1 
+000011DC  60D8                     290           BRA      PARAM1            Repeat until delimiter found 
+000011DE  2D48 0104                291  PARAM4   MOVE.L   A0,BUFFPT(A6)     Save pointer in memory 
+000011E2  2D41 0108                292           MOVE.L   D1,PARAMTR(A6)    Save parameter in memory 
+000011E6  2001                     293           MOVE.L   D1,D0             Put parameter in D0 for return 
+000011E8  6004                     294           BRA.S    PARAM6            Return without error 
+000011EA  8E3C 0002                295  PARAM5   OR.B     #2,D7             Set error flag before return 
+000011EE  221F                     296  PARAM6   MOVE.L   (A7)+,D1          Restore working register 
+000011F0  4E75                     297           RTS                        Return with error 
+000011F2                           298  * 
+000011F2                           299  ************************************************************************* 
+000011F2                           300  * 
+000011F2                           301  *  Output routines 
+000011F2                           302  *  OUT1X   = print one   hexadecimal character 
+000011F2                           303  *  OUT2X   = print two   hexadecimal characters 
+000011F2                           304  *  OUT4X   = print four  hexadecimal characters 
+000011F2                           305  *  OUT8X   = print eight hexadecimal characters 
+000011F2                           306  *  In each case, the data to be printed is in D0 
+000011F2                           307  * 
+000011F2  3F00                     308  OUT1X    MOVE.W   D0,-(A7)          Save D0 
+000011F4  C03C 000F                309           AND.B    #$0F,D0           Mask off MS nybble 
+000011F8  0600 0030                310           ADD.B    #$30,D0           Convert to ASCII 
+000011FC  B03C 0039                311           CMP.B    #$39,D0           ASCII = HEX + $30 
+00001200  6302                     312           BLS.S    OUT1X1            If ASCII <= $39 then print and exit 
+00001202  5E00                     313           ADD.B    #$07,D0           Else ASCII := HEX + 7 
+00001204  6100 0344                314  OUT1X1   BSR      PUTCHAR           Print the character 
+00001208  301F                     315           MOVE.W   (A7)+,D0          Restore D0 
+0000120A  4E75                     316           RTS 
+0000120C                           317  * 
+0000120C  E818                     318  OUT2X    ROR.B    #4,D0             Get MS nybble in LS position 
+0000120E  61E2                     319           BSR      OUT1X             Print MS nybble 
+00001210  E918                     320           ROL.B    #4,D0             Restore LS nybble 
+00001212  60DE                     321           BRA      OUT1X             Print LS nybble and return 
+00001214                           322  * 
+00001214  E058                     323  OUT4X    ROR.W    #8,D0             Get MS byte in LS position 
+00001216  61F4                     324           BSR      OUT2X             Print MS byte 
+00001218  E158                     325           ROL.W    #8,D0             Restore LS byte 
+0000121A  60F0                     326           BRA      OUT2X             Print LS byte and return 
+0000121C                           327  * 
+0000121C  4840                     328  OUT8X    SWAP     D0                Get MS word in LS position 
+0000121E  61F4                     329           BSR      OUT4X             Print MS word 
+00001220  4840                     330           SWAP     D0                Restore LS word 
+00001222  60F0                     331           BRA      OUT4X             Print LS word and return 
+00001224                           332  * 
+00001224                           333  ************************************************************************* 
+00001224                           334  * 
+00001224                           335  * JUMP causes execution to begin at the address in the line buffer 
+00001224                           336  * 
+00001224  6188                     337  JUMP     BSR     PARAM              Get address from buffer 
+00001226  4A07                     338           TST.B   D7                 Test for input error 
+00001228  6608                     339           BNE.S   JUMP1              If error flag not zero then exit 
+0000122A  4A80                     340           TST.L   D0                 Else test for missing address 
+0000122C  6704                     341           BEQ.S   JUMP1              field. If no address then exit 
+0000122E  2040                     342           MOVE.L  D0,A0              Put jump address in A0 and call the 
+00001230  4ED0                     343           JMP     (A0)               subroutine. User to supply RTS!! 
+00001232  49FA 0BE9                344  JUMP1    LEA.L   ERMES1(PC),A4      Here for error - display error 
+00001236  6000 FE42                345           BRA     PSTRING            message and return 
+0000123A                           346  * 
+0000123A                           347  ************************************************************************* 
+0000123A                           348  * 
+0000123A                           349  *  Display the contents of a memory location and modify it 
+0000123A                           350  * 
+0000123A  6100 FF72                351  MEMORY   BSR      PARAM             Get start address from line buffer 
+0000123E  4A07                     352           TST.B    D7                Test for input error 
+00001240  6634                     353           BNE.S    MEM3              If error then exit 
+00001242  2640                     354           MOVE.L   D0,A3             A3 points to location to be opened 
+00001244  6100 FE24                355  MEM1     BSR      NEWLINE 
+00001248  612E                     356           BSR.S    ADR_DAT           Print current address and contents 
+0000124A  6140                     357           BSR.S    PSPACE             update pointer, A3, and O/P space 
+0000124C  6100 02B0                358           BSR      GETCHAR           Input char to decide next action 
+00001250  B03C 000D                359           CMP.B    #CR,D0            If carriage return then exit 
+00001254  6720                     360           BEQ.S    MEM3              Exit 
+00001256  B03C 002D                361           CMP.B    #'-',D0           If "-" then move back 
+0000125A  6606                     362           BNE.S    MEM2              Else skip wind-back procedure 
+0000125C  47EB FFFC                363           LEA.L    -4(A3),A3         Move pointer back 2+2 
+00001260  60E2                     364           BRA      MEM1              Repeat until carriage return 
+00001262  B03C 0020                365  MEM2     CMP.B    #SPACE,D0         Test for space (= new entry) 
+00001266  66DC                     366           BNE.S    MEM1              If not space then repeat 
+00001268  6100 FF38                367           BSR      WORD              Else get new word to store 
+0000126C  4A07                     368           TST.B    D7                Test for input error 
+0000126E  6606                     369           BNE.S    MEM3              If error then exit 
+00001270  3740 FFFE                370           MOVE.W   D0,-2(A3)         Store new word 
+00001274  60CE                     371           BRA      MEM1              Repeat until carriage return 
+00001276  4E75                     372  MEM3     RTS 
+00001278                           373  * 
+00001278  2F00                     374  ADR_DAT  MOVE.L   D0,-(A7)          Print the contents of A3 and the 
+0000127A  200B                     375           MOVE.L   A3,D0             word pointed at by A3. 
+0000127C  619E                     376           BSR      OUT8X              and print current address 
+0000127E  610C                     377           BSR.S    PSPACE            Insert delimiter 
+00001280  3013                     378           MOVE.W   (A3),D0           Get data at this address in D0 
+00001282  6190                     379           BSR      OUT4X              and print it 
+00001284  47EB 0002                380           LEA.L    2(A3),A3          Point to next address to display 
+00001288  201F                     381           MOVE.L   (A7)+,D0          Restore D0 
+0000128A  4E75                     382           RTS 
+0000128C                           383  * 
+0000128C  1F00                     384  PSPACE   MOVE.B   D0,-(A7)          Print a single space 
+0000128E  103C 0020                385           MOVE.B   #SPACE,D0
+00001292  6100 02B6                386           BSR      PUTCHAR 
+00001296  101F                     387           MOVE.B   (A7)+,D0 
+00001298  4E75                     388           RTS 
+0000129A                           389  * 
+0000129A                           390  ************************************************************************* 
+0000129A                           391  * 
+0000129A                           392  *  LOAD  Loads data formatted in hexadecimal "S". format from Port 2 
+0000129A                           393  *        NOTE - I/O is automatically redirected to the aux port for 
+0000129A                           394  *        loader functions. S1 or S2 records accepted 
+0000129A                           395  * 
+0000129A  2F2E 0116                396  LOAD     MOVE.L   CN_OVEC(A6),-(A7) Save current output device name 
+0000129E  2F2E 0112                397           MOVE.L   CN_IVEC(A6),-(A7) Save current input device name 
+000012A2  522E 010C                398           ADD.B    #1,ECHO(A6)       Turn off character echo 
+000012A6  6100 FDC2                399           BSR      NEWLINE           Send newline to host 
+000012AA  6100 014E                400           BSR      DELAY             Wait for host to "settle" 
+000012AE  6100 014A                401           BSR      DELAY 
+000012B2  286E 0104                402           MOVE.L   BUFFPT(A6),A4     Any string in the line buffer is 
+000012B6  101C                     403  LOAD1    MOVE.B   (A4)+,D0          transmitted to the host computer 
+000012B8                           404           *sBSR      PUTCHAR           before the loading begins 
+000012B8  B03C 000D                405           CMP.B    #CR,D0            Read from the buffer until EOL 
+000012BC  66F8                     406           BNE      LOAD1 
+000012BE  6100 FDAA                407           BSR      NEWLINE           Send newline before loading 
+000012C2  6100 023A                408  LOAD2    BSR      GETCHAR           Records from the host must begin 
+000012C6  B03C 0053                409           CMP.B    #'S',D0           with S1/S2 (data) or S9/S8 (term) 
+000012CA  66F6                     410           BNE.S    LOAD2             Repeat GETCHAR until char = "S" 
+000012CC  6100 0230                411           BSR      GETCHAR           Get character after "S" 
+000012D0  B03C 0039                412           CMP.B    #'9',D0           Test for the two terminators S9/S8 
+000012D4  6706                     413           BEQ.S    LOAD3             If S9 record then exit else test 
+000012D6  B03C 0038                414           CMP.B    #'8',D0           for S8 terminator. Fall through to 
+000012DA  662A                     415           BNE.S    LOAD6             exit on S8 else continue search 
+000012DC  =000012DC                416  LOAD3    EQU      *                 Exit point from LOAD 
+000012DC  2D5F 0112                417           MOVE.L   (A7)+,CN_IVEC(A6) Clean up by restoring input device 
+000012E0  2D5F 0116                418           MOVE.L   (A7)+,CN_OVEC(A6) and output device name 
+000012E4  422E 010C                419           CLR.B    ECHO(A6)          Restore input character echo 
+000012E8  0807 0000                420           BTST     #0,D7             Test for input errors 
+000012EC  6708                     421           BEQ.S    LOAD4             If no I/P error then look at checksum 
+000012EE  49FA 0B2D                422           LEA.L    ERMES1(PC),A4     Else point to error message 
+000012F2  6100 FD86                423           BSR      PSTRING           Print it 
+000012F6  0807 0003                424  LOAD4    BTST     #3,D7             Test for checksum error 
+000012FA  6708                     425           BEQ.S    LOAD5             If clear then exit 
+000012FC  49FA 0B4F                426           LEA.L    ERMES3(PC),A4     Else point to error message 
+00001300  6100 FD78                427           BSR      PSTRING           Print it and return 
+00001304  4E75                     428  LOAD5    RTS 
+00001306                           429  * 
+00001306  B03C 0031                430  LOAD6    CMP.B    #'1',D0           Test for S1 record 
+0000130A  671E                     431           BEQ.S    LOAD6A            If S1 record then read it 
+0000130C  B03C 0032                432           CMP.B    #'2',D0           Else test for S2 record 
+00001310  66B0                     433           BNE.S    LOAD2             Repeat until valid header found 
+00001312  4203                     434           CLR.B    D3                Read the S2 byte count and address, 
+00001314  613C                     435           BSR.S    LOAD8             clear the checksum 
+00001316  5900                     436           SUB.B    #4,D0             Calculate size of data field 
+00001318  1400                     437           MOVE.B   D0,D2             D2 contains data bytes to read 
+0000131A  4280                     438           CLR.L    D0                Clear address accumulator 
+0000131C  6134                     439           BSR.S    LOAD8             Read most sig byte of address 
+0000131E  E180                     440           ASL.L    #8,D0             Move it one byte left 
+00001320  6130                     441           BSR.S    LOAD8             Read the middle byte of address 
+00001322  E180                     442           ASL.L    #8,D0             Move it one byte left 
+00001324  612C                     443           BSR.S    LOAD8             Read least sig byte of address 
+00001326  2440                     444           MOVE.L   D0,A2             A2 points to destination of record 
+00001328  6012                     445           BRA.S    LOAD7             Skip past S1 header loader 
+0000132A  4203                     446  LOAD6A   CLR.B    D3                S1 record found - clear checksum 
+0000132C  6124                     447           BSR.S    LOAD8             Get byte and update checksum 
+0000132E  5700                     448           SUB.B    #3,D0             Subtract 3 from record length 
+00001330  1400                     449           MOVE.B   D0,D2             Save byte count in D2 
+00001332  4280                     450           CLR.L    D0                Clear address accumulator 
+00001334  611C                     451           BSR.S    LOAD8             Get MS byte of load address 
+00001336  E180                     452           ASL.L    #8,D0             Move it to MS position 
+00001338  6118                     453           BSR.S    LOAD8             Get LS byte in D2 
+0000133A  2440                     454           MOVE.L   D0,A2             A2 points to destination of data 
+0000133C  6114                     455  LOAD7    BSR.S    LOAD8             Get byte of data for loading 
+0000133E  14C0                     456           MOVE.B   D0,(A2)+          Store it 
+00001340  5302                     457           SUB.B    #1,D2             Decrement byte counter 
+00001342  66F8                     458           BNE      LOAD7             Repeat until count = 0 
+00001344  610C                     459           BSR.S    LOAD8             Read checksum 
+00001346  5203                     460           ADD.B    #1,D3             Add 1 to total checksum 
+00001348  6700 FF78                461           BEQ      LOAD2             If zero then start next record 
+0000134C  8E3C 0008                462           OR.B     #%00001000,D7     Else set checksum error bit, 
+00001350  608A                     463           BRA      LOAD3             restore I/O devices and return 
+00001352                           464  * 
+00001352  6100 FE3E                465  LOAD8    BSR     BYTE               Get a byte 
+00001356  D600                     466           ADD.B   D0,D3              Update checksum 
+00001358  4E75                     467           RTS                         and return 
+0000135A                           468  *************************************************************************** 
+0000135A                           469  * 
+0000135A                           470  *  DUMP   Transmit S1 formatted records to host computer 
+0000135A                           471  *         A3 = Starting address of data block 
+0000135A                           472  *         A2 = End address of data block 
+0000135A                           473  *         D1 = Checksum, D2 = current record length 
+0000135A                           474  * 
+0000135A  6100 008E                475  DUMP     BSR      RANGE             Get start and end address 
+0000135E  4A07                     476           TST.B    D7                Test for input error 
+00001360  6708                     477           BEQ.S    DUMP1             If no error then continue 
+00001362  49FA 0AB9                478           LEA.L    ERMES1(PC),A4     Else point to error message, 
+00001366  6000 FD12                479           BRA      PSTRING           print it and return 
+0000136A  B08B                     480  DUMP1    CMP.L    A3,D0             Compare start and end addresses 
+0000136C  6A08                     481           BPL.S    DUMP2             If positive then start < end 
+0000136E  49FA 0C4C                482           LEA.L    ERMES7(PC),A4     Else print error message 
+00001372  6000 FD06                483           BRA      PSTRING           and return 
+00001376  2F2E 0116                484  DUMP2    MOVE.L   CN_OVEC(A6),-(A7) Save name of current output device 
+0000137A                           485  *         MOVE.L   #DCB4,CN_OVEC(A6) Set up Port 2 as output device 
+0000137A  6100 FCEE                486           BSR      NEWLINE           Send newline to host and wait 
+0000137E  617A                     487           BSR.S    DELAY 
+00001380  286E 0104                488           MOVE.L   BUFFPT(A6),A4     Before dumping, send any string 
+00001384  101C                     489  DUMP3    MOVE.B   (A4)+,D0          in the input buffer to the host 
+00001386  6100 01C2                490           BSR      PUTCHAR           Repeat 
+0000138A  B03C 000D                491           CMP.B    #CR,D0            Transmit char from buffer to host 
+0000138E  66F4                     492           BNE      DUMP3             Until char = C/R 
+00001390  6100 FCD8                493           BSR      NEWLINE 
+00001394  6164                     494           BSR.S    DELAY             Allow time for host to settle 
+00001396  528A                     495           ADDQ.L   #1,A2             A2 contains length of record + 1 
+00001398  240A                     496  DUMP4    MOVE.L   A2,D2             D2 points to end address 
+0000139A  948B                     497           SUB.L    A3,D2             D2 contains bytes left to print 
+0000139C  B4BC 00000011            498           CMP.L    #17,D2            If this is not a full record of 16 
+000013A2  6502                     499           BCS.S    DUMP5             then load D2 with record size 
+000013A4  7410                     500           MOVEQ    #16,D2            Else preset byte count to 16 
+000013A6  49FA 098B                501  DUMP5    LEA.L    HEADER(PC),A4     Point to record header 
+000013AA  6100 FCCE                502           BSR      PSTRING           Print header 
+000013AE  4201                     503           CLR.B    D1                Clear checksum 
+000013B0  1002                     504           MOVE.B   D2,D0             Move record length to output register 
+000013B2  5600                     505           ADD.B    #3,D0             Length includes address + count 
+000013B4  612E                     506           BSR.S    DUMP7             Print number of bytes in record 
+000013B6  200B                     507           MOVE.L   A3,D0             Get start address to be printed 
+000013B8  E158                     508           ROL.W    #8,D0             Get MS byte in LS position 
+000013BA  6128                     509           BSR.S    DUMP7             Print MS byte of address 
+000013BC  E058                     510           ROR.W    #8,D0             Restore LS byte 
+000013BE  6124                     511           BSR.S    DUMP7             Print LS byte of address 
+000013C0  101B                     512  DUMP6    MOVE.B   (A3)+,D0          Get data byte to be printed 
+000013C2  6120                     513           BSR.S    DUMP7             Print it 
+000013C4  5302                     514           SUB.B    #1,D2             Decrement byte count 
+000013C6  66F8                     515           BNE      DUMP6             Repeat until all this record printed 
+000013C8  4601                     516           NOT.B    D1                Complement checksum 
+000013CA  1001                     517           MOVE.B   D1,D0             Move to output register 
+000013CC  6116                     518           BSR.S    DUMP7             Print checksum 
+000013CE  6100 FC9A                519           BSR      NEWLINE 
+000013D2  B7CA                     520           CMP.L    A2,A3             Have all records been printed? 
+000013D4  66C2                     521           BNE      DUMP4             Repeat until all done 
+000013D6  49FA 0961                522           LEA.L    TAIL(PC),A4       Point to message tail (S9 record) 
+000013DA  6100 FC9E                523           BSR      PSTRING           Print it 
+000013DE  2D5F 0116                524           MOVE.L   (A7)+,CN_OVEC(A6) Restore name of output device 
+000013E2  4E75                     525           RTS                        and return 
+000013E4                           526  * 
+000013E4  D200                     527  DUMP7    ADD.B    D0,D1             Update checksum, transmit byte 
+000013E6  6000 FE24                528           BRA      OUT2X             to host and return 
+000013EA                           529  * 
+000013EA  =000013EA                530  RANGE    EQU      *                 Get the range of addresses to be 
+000013EA  4207                     531           CLR.B    D7                transmitted from the buffer 
+000013EC  6100 FDC0                532           BSR      PARAM             Get starting address 
+000013F0  2640                     533           MOVE.L   D0,A3             Set up start address in A3 
+000013F2  6100 FDBA                534           BSR      PARAM             Get end address 
+000013F6  2440                     535           MOVE.L   D0,A2             Set up end address in A2 
+000013F8  4E75                     536           RTS 
+000013FA                           537  * 
+000013FA  =000013FA                538  DELAY    EQU       *                Provide a time delay for the host 
+000013FA  48E7 8008                539           MOVEM.L   D0/A4,-(A7)      to settle. Save working registers 
+000013FE  203C 00004000            540           MOVE.L    #$4000,D0        Set up delay constant 
+00001404  5380                     541  DELAY1   SUB.L     #1,D0            Count down         (8 clk cycles) 
+00001406  66FC                     542           BNE       DELAY1           Repeat until zero  (10 clk cycles) 
+00001408  4CDF 1001                543           MOVEM.L   (A7)+,D0/A4      Restore working registers 
+0000140C  4E75                     544           RTS 
+0000140E                           545  * 
+0000140E                           546  * AUX_IN and AUX_OUT are simplified versions of CON_IN and 
+0000140E                           547  * CON_OUT for use with the port to the host processor 
+0000140E                           548  
+0000140E  43E8 000C                549  AUX_IN    LEA.L   12(A0),A1       Get pointer to aux ACIA from DCB 
+00001412  2251                     550            MOVE.L  (A1),A1         Get address of aux ACIA 
+00001414  0811 0000                551  AUX_IN1   BTST.B  #0,(A1)         Test for data ready 
+00001418  67FA                     552            BEQ     AUX_IN1         Repeat until ready 
+0000141A  1029 0002                553            MOVE.B  2(A1),D0        Read input 
+0000141E  4E75                     554            RTS 
+00001420                           555    
+00001420  43E8 000C                556  AUX_OUT   LEA.L   12(A0),A1       Get pointer to aux ACIA from DCB 
+00001424  2251                     557            MOVE.L  (A1),A1         Get address of aux ACIA 
+00001426  0811 0001                558  AUX_OT1   BTST.B  #1,(A1)         Test for ready to transmit 
+0000142A  67FA                     559            BEQ     AUX_OT1         Repeat until transmitter ready 
+0000142C  1340 0002                560            MOVE.B  D0,2(A1)        Transmit data 
+00001430  4E75                     561            RTS 
+00001432                           562  ************************************************************************* 
+00001432                           563  * 
+00001432                           564  *  This routine sets up the system DCBs in RAM using the information 
+00001432                           565  *  stored in ROM at address DCB_LST. This is called at initialization. 
+00001432                           566  *  CN_IVEC contains the name "DCB1" and IO_VEC the name "DCB2" 
+00001432                           567  * 
+00001432  48E7 F0F0                568  SET_DCB  MOVEM.L A0-A3/D0-D3,-(A7) Save all working registers 
+00001436  41EE 0194                569           LEA.L   FIRST(A6),A0    Pointer to first DCB destination in RAM 
+0000143A  43FA 0BFC                570           LEA.L   DCB_LST(PC),A1  A1 points to DCB info block in ROM 
+0000143E  303C 0003                571           MOVE.W  #3,D0           4 DCBs to set up 
+00001442  323C 000F                572  ST_DCB1  MOVE.W  #15,D1          16 bytes to move per DCB header 
+00001446  10D9                     573  ST_DCB2  MOVE.B  (A1)+,(A0)+     Move the 16 bytes of a DCB header 
+00001448  51C9 FFFC                574           DBRA    D1,ST_DCB2      from ROM to RAM 
+0000144C  3619                     575           MOVE.W  (A1)+,D3        Get size of parameter block (bytes) 
+0000144E  3083                     576           MOVE.W  D3,(A0)         Store size in DCB in RAM 
+00001450  41F0 3002                577           LEA.L   2(A0,D3.W),A0   A0 points to tail of DCB in RAM 
+00001454  47E8 0004                578           LEA.L   4(A0),A3        A3 contains address of next DCB in RAM 
+00001458  208B                     579           MOVE.L  A3,(A0)         Store pointer to next DCB in this DCB 
+0000145A  41D3                     580           LEA.L   (A3),A0         A0 now points at next DCB in RAM 
+0000145C  51C8 FFE4                581           DBRA    D0,ST_DCB1      Repeat until all DCBs set up 
+00001460  47EB FFFC                582           LEA.L   -4(A3),A3       Adjust A3 to point to last DCB pointer 
+00001464  4293                     583           CLR.L   (A3)            and force last pointer to zero 
+00001466  2D7C 00002038 0112       584           MOVE.L  #DCB1,CN_IVEC(A6) Set up vector to console input DCB 
+0000146E  2D7C 0000204A 0116       585           MOVE.L  #DCB2,CN_OVEC(A6) Set up vector to console output DCB 
+00001476  4CDF 0F0F                586           MOVEM.L (A7)+,A0-A3/D0-D3 Restore registers 
+0000147A  4E75                     587           RTS 
+0000147C                           588  * 
+0000147C                           589  ************************************************************************* 
+0000147C                           590  * 
+0000147C                           591  *  IO_REQ handles all input/output transactions. A0 points to DCB on 
+0000147C                           592  *  entry. IO_REQ calls the device driver whose address is in the DCB. 
+0000147C                           593  * 
+0000147C  48E7 00C0                594  IO_REQ   MOVEM.L A0-A1,-(A7)     Save working registers 
+00001480  43E8 0008                595           LEA.L   8(A0),A1        A1 points to device handler field in DCB 
+00001484  2251                     596           MOVE.L  (A1),A1         A1 contains device handler address 
+00001486  4E91                     597           JSR     (A1)            Call device handler 
+00001488  4CDF 0300                598           MOVEM.L (A7)+,A0-A1     Restore working registers 
+0000148C  4E75                     599           RTS 
+0000148E                           600  * 
+0000148E                           601  ************************************************************************* 
+0000148E                           602  * 
+0000148E                           603  *  CON_IN handles input from the console device 
+0000148E                           604  *  This is the device driver used by DCB1. Exit with input in D0 
+0000148E                           605  * 
+0000148E  48E7 4040                606  CON_IN   MOVEM.L D1/A1,-(A7)     Save working registers 
+00001492  43E8 000C                607           LEA.L   12(A0),A1       Get pointer to ACIA from DCB 
+00001496  2251                     608           MOVE.L  (A1),A1         Get address of ACIA in A1 
+00001498  4228 0013                609           CLR.B   19(A0)          Clear logical error in DCB 
+0000149C  1211                     610  CON_I1   MOVE.B  (A1),D1         Read ACIA status 
+0000149E  0801 0000                611           BTST  #0,D1           Test RDRF 
+000014A2  67F8                     612           BEQ     CON_I1          Repeat until RDRF true 
+000014A4  1141 0012                613           MOVE.B  D1,18(A0)       Store physical status in DCB 
+000014A8  C23C 00F4                614           AND.B   #%011110100,D1  Mask to input error bits 
+000014AC  6706                     615           BEQ.S   CON_I2          If no error then skip update 
+000014AE  117C 0001 0013           616           MOVE.B  #1,19(A0)       Else update logical error 
+000014B4  1029 0002                617  CON_I2   MOVE.B  2(A1),D0        Read input from ACIA 
+000014B8  4CDF 0202                618           MOVEM.L (A7)+,A1/D1     Restore working registers 
+000014BC  4E75                     619           RTS 
+000014BE                           620  * 
+000014BE                           621  ************************************************************************* 
+000014BE                           622  * 
+000014BE                           623  *   This is the device driver used by DCB2. Output in D0 
+000014BE                           624  *   The output can be halted or suspended 
+000014BE                           625  * 
+000014BE  48E7 6040                626  CON_OUT  MOVEM.L A1/D1-D2,-(A7)  Save working registers 
+000014C2  43E8 000C                627           LEA.L   12(A0),A1       Get pointer to ACIA from DCB 
+000014C6  2251                     628           MOVE.L  (A1),A1         Get address of ACIA in A1 
+000014C8  4228 0013                629           CLR.B   19(A0)          Clear logical error in DCB 
+000014CC  1211                     630  CON_OT1  MOVE.B  (A1),D1         Read ACIA status 
+000014CE  0801 0000                631           BTST  #0,D1           Test RDRF bit (any input?) 
+000014D2  6716                     632           BEQ.S   CON_OT3         If no input then test output status 
+000014D4  1429 0002                633           MOVE.B  2(A1),D2        Else read the input 
+000014D8  C43C 005F                634           AND.B   #%01011111,D2   Strip parity and bit 5 
+000014DC  B43C 0057                635           CMP.B   #WAIT,D2        and test for a wait condition 
+000014E0  6608                     636           BNE.S   CON_OT3         If not wait then ignore and test O/P 
+000014E2  1411                     637  CON_OT2  MOVE.B  (A1),D2         Else read ACIA status register 
+000014E4  0802 0000                638           BTST  #0,D2           and poll ACIA until next char received 
+000014E8  67F8                     639           BEQ     CON_OT2 
+000014EA  0801 0001                640  CON_OT3  BTST  #1,D1           Repeat 
+000014EE  67DC                     641           BEQ     CON_OT1          until ACIA Tx ready 
+000014F0  1141 0012                642           MOVE.B  D1,18(A0)       Store status in DCB physical error 
+000014F4  1340 0002                643           MOVE.B  D0,2(A1)        Transmit output 
+000014F8  4CDF 0206                644           MOVEM.L (A7)+,A1/D1-D2  Restore working registers 
+000014FC  4E75                     645           RTS 
+000014FE                           646  * 
+000014FE                           647  ************************************************************************* 
+000014FE                           648  * 
+000014FE                           649  *  GETCHAR gets a character from the console device 
+000014FE                           650  *  This is the main input routine and uses the device whose name  
+000014FE                           651  *  is stored in CN_IVEC. Changing this name redirects input. 
+000014FE                           652  * 
+000014FE  2F08                     653  GETCHAR  MOVE.L  A0,-(A7)        Save working register 
+00001500  206E 0112                654           MOVE.L  CN_IVEC(A6),A0  A0 points to name of console DCB 
+00001504  616A                     655           BSR.S   IO_OPEN         Open console (get DCB address in A0) 
+00001506  0807 0003                656           BTST    #3,D7           D7(3) set if open error 
+0000150A  6628                     657           BNE.S   GETCH3          If error then exit now 
+0000150C  6100 FF6E                658           BSR     IO_REQ          Else execute I/O transaction 
+00001510  C03C 007F                659           AND.B   #$7F,D0         Strip msb of input 
+00001514  4A2E 010D                660           TST.B   U_CASE(A6)      Test for upper -> lower case conversion 
+00001518  660A                     661           BNE.S   GETCH2          If flag not zero do not convert case 
+0000151A  0800 0006                662           BTST    #6,D0           Test input for lower case 
+0000151E  6704                     663           BEQ.S   GETCH2          If upper case then skip conversion 
+00001520  C03C 00DF                664           AND.B   #%11011111,D0   Else clear bit 5 for upper case conv 
+00001524  4A2E 010C                665  GETCH2   TST.B   ECHO(A6)        Do we need to echo the input? 
+00001528  660A                     666           BNE.S   GETCH3          If ECHO not zero then no echo
+0000152A  BC3C 0001                667           CMP.B   #1,D6
+0000152E  6700 0008                668           BEQ     PUTASK
+00001532  6116                     669           BSR.S   PUTCHAR         Else echo the input 
+00001534  205F                     670  GETCH3   MOVE.L  (A7)+,A0        Restore working register 
+00001536  4E75                     671           RTS                     and return 
+00001538                           672  
+00001538  1600                     673  PUTASK   MOVE.B  D0,D3           save D0
+0000153A  B07C 000D                674           CMP     #CR,D0          if Carriage_return 
+0000153E  6700 001E                675           BEQ     SPUTCHAR        then PUTCHAR
+00001542  103C 002A                676           MOVE.B  #42,D0          else PUTASK to hide password
+00001546  6000 0016                677           BRA     SPUTCHAR
+0000154A                           678  
+0000154A                           679  * 
+0000154A                           680  ************************************************************************* 
+0000154A                           681  * 
+0000154A                           682  *  PUTCHAR sends a character to the console device 
+0000154A                           683  *  The name of the output device is in CN_OVEC. 
+0000154A                           684  * 
+0000154A  BC3C 0001                685  PUTCHAR  CMP.B   #1,D6
+0000154E  2F08                     686           MOVE.L  A0,-(A7)        Save working register
+00001550  206E 0116                687           MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
+00001554  611A                     688           BSR.S   IO_OPEN         Open console (Get address of DCB) 
+00001556  6100 FF24                689           BSR     IO_REQ          Perform output with DCB pointed at by A0 
+0000155A  205F                     690           MOVE.L  (A7)+,A0        Restore working register 
+0000155C  4E75                     691           RTS 
+0000155E                           692  
+0000155E  2F08                     693  SPUTCHAR  MOVE.L  A0,-(A7)        Save working register
+00001560  206E 0116                694            MOVE.L  CN_OVEC(A6),A0  A0 points to name of console output 
+00001564  610A                     695            BSR.S   IO_OPEN         Open console (Get address of DCB) 
+00001566  6100 FF14                696            BSR     IO_REQ          Perform output with DCB pointed at by A0 
+0000156A  205F                     697            MOVE.L  (A7)+,A0        Restore working register
+0000156C  1003                     698            MOVE.B  D3,D0           restore d0
+0000156E  60C4                     699            BRA     GETCH3 
+00001570                           700  * 
+00001570                           701  ************************************************************************* 
+00001570                           702  * 
+00001570                           703  *  Open - opens a DCB for input or output. IO_OPEN converts the 
+00001570                           704  *  name pointed at by A0 into the address of the DCB pointed at 
+00001570                           705  *  by A0. Bit 3 of D7 is set to zero if DCB not found 
+00001570                           706  * 
+00001570  48E7 F870                707  IO_OPEN  MOVEM.L  A1-A3/D0-D4,-(A7) Save working registers 
+00001574  43EE 0194                708           LEA.L    FIRST(A6),A1   A1 points to first DCB in chain in RAM 
+00001578  45D1                     709  OPEN1    LEA.L    (A1),A2        A2 = temp copy of pointer to DCB 
+0000157A  47D0                     710           LEA.L    (A0),A3        A3 = temp copy of pointer to DCB name 
+0000157C  303C 0007                711           MOVE.W   #7,D0          Up to 8 chars of DCB name to match 
+00001580  181A                     712  OPEN2    MOVE.B   (A2)+,D4       Compare DCB name with string 
+00001582  B81B                     713           CMP.B    (A3)+,D4 
+00001584  6608                     714           BNE.S    OPEN3          If no match try next DCB 
+00001586  51C8 FFF8                715           DBRA     D0,OPEN2       Else repeat until all chars matched 
+0000158A  41D1                     716           LEA.L    (A1),A0        Success - move this DCB address to A0 
+0000158C  6016                     717           BRA.S    OPEN4          and return 
+0000158E  =0000158E                718  OPEN3    EQU      *              Fail - calculate address of next DCB 
+0000158E  3229 0010                719           MOVE.W   16(A1),D1      Get parameter block size of DCB 
+00001592  43F1 1012                720           LEA.L    18(A1,D1.W),A1 A1 points to pointer to next DCB 
+00001596  2251                     721           MOVE.L   (A1),A1        A1 now points to next DCB 
+00001598  B3FC 00000000            722           CMP.L    #0,A1          Test for end of DCB chain 
+0000159E  66D8                     723           BNE      OPEN1          If not end of chain then try next DCB 
+000015A0  8E3C 0008                724           OR.B     #8,D7          Else set error flag and return 
+000015A4  4CDF 0E1F                725  OPEN4    MOVEM.L  (A7)+,A1-A3/D0-D4 Restore working registers 
+000015A8  4E75                     726           RTS 
+000015AA                           727  * 
+000015AA                           728  ************************************************************************* 
+000015AA                           729  * 
+000015AA                           730  *  Exception vector table initialization routine 
+000015AA                           731  *  All vectors not setup are loaded with uninitialized routine vector 
+000015AA                           732  * 
+000015AA  303C 0007                733  B_CLR   MOVE.W  #7,D0             Now clear the breakpoint table 
+000015AE  41EE 0164                734          LEA.L   BP_TAB(A6),A0     Point to table
+000015B2  4E75                     735          RTS 
+000015B4                           736  * 
+000015B4                           737  *************************************************************************
+000015B4  DA04                     738  ADD_0   ADD.B     D4,D5           adding Bytes inputted to D4 and D5
+000015B6  1605                     739          MOVE.B    D5,D3           moving D5 to D3
+000015B8  183C 0000                740          MOVE.B    #0,D4           resetting neg flag
+000015BC  6B00 0040                741          BMI       SETNEG          if negative set neg flag
+000015C0  4E75                     742          RTS
+000015C2                           743  
+000015C2  9A04                     744  SUB_0   SUB.B     D4,D5           subtracting Bytes inputted to D4 and D5
+000015C4  183C 0000                745          MOVE.B    #0,D4           resetting neg flag
+000015C8  1605                     746          MOVE.B    D5,D3           moving D5 to D3
+000015CA  6B00 0032                747          BMI       SETNEG          if negative set neg flag
+000015CE  4E75                     748          RTS
+000015D0                           749          
+000015D0  CBC4                     750  MUL_0   MULS      D4,D5           multiplying Bytes inputted to D4 and D5
+000015D2  383C 0000                751          MOVE.W    #0,D4           resetting neg flag
+000015D6  2605                     752          MOVE.L    D5,D3           moving D5 to D3
+000015D8  6B00 0034                753          BMI       MULNEG          if negative set neg flag
+000015DC  4E75                     754          RTS
+000015DE                           755  
+000015DE  8BC4                     756  DIV_0   DIVS      D4,D5           dividing Bytes inputted to D4 and D5
+000015E0  183C 0000                757          MOVE.B    #0,D4           resetting neg flag
+000015E4  1605                     758          MOVE.B    D5,D3           moving D5 to D3
+000015E6  4603                     759          NOT.B     D3              converting result from twos Complement
+000015E8  C63C 007F                760          AND.B     #%01111111,D3   to regular hex values
+000015EC  5203                     761          ADD.B     #1,D3           finishing process
+000015EE  BA7C 007F                762          CMP.W     #127,D5         if greater than, it is negative
+000015F2  6500 0004                763          BCS       DIVNEG          if negative set neg flag
+000015F6  4E75                     764          RTS
+000015F8                           765  
+000015F8  183C 0001                766  DIVNEG  MOVE.B    #1,D4           set neg flag
+000015FC  4E75                     767          RTS
+000015FE                           768  
+000015FE  183C 00FF                769  SETNEG  MOVE.B    #255,D4         convert twos comliment conversion
+00001602  9803                     770          SUB.B     D3,D4           result to regular hex
+00001604  1604                     771          MOVE.B    D4,D3           moving D4 to D3
+00001606  5203                     772          ADD.B     #1,D3           set neg flag
+00001608  183C 0001                773          MOVE.B    #1,D4           set neg flag
+0000160C  4E75                     774          RTS
+0000160E                           775  
+0000160E  183C 0001                776  MULNEG  MOVE.B    #1,D4           setting neg flag
+00001612  4683                     777          NOT.L     D3              since a neg product is twos comliment this must 
+00001614  C6BC 7FFFFFFF            778          AND.L     #%01111111111111111111111111111111,D3       be converted to hex
+0000161A  5203                     779          ADD.B     #1,D3
+0000161C  4E75                     780          RTS
+0000161E                           781  
+0000161E                           782  ************************************************************************* 
+0000161E                           783  * 
+0000161E                           784  * 
+0000161E  =0000161E                785  TRAP_0  EQU     *                 User links to  TS2BUG via TRAP #0 
+0000161E  B23C 0000                786          CMP.B   #0,D1             D1 = 0 = Get character 
+00001622  6606                     787          BNE.S   FOO1           
+00001624  6100 FED8                788          BSR     GETCHAR 
+00001628  4E73                     789          RTE 
+0000162A  B23C 0001                790  FOO1    CMP.B   #1,D1             D1 = 1 = Print character 
+0000162E  6606                     791          BNE.S   FOO2 
+00001630  6100 FF18                792          BSR     PUTCHAR 
+00001634  4E73                     793          RTE 
+00001636  B23C 0002                794  FOO2    CMP.B   #2,D1             D1 = 2 = Newline 
+0000163A  6606                     795          BNE.S   FOO3 
+0000163C  6100 FA2C                796          BSR     NEWLINE 
+00001640  4E73                     797          RTE 
+00001642  B23C 0003                798  FOO3    CMP.B   #3,D1             D1 = 3 = Get parameter from buffer 
+00001646  6606                     799          BNE.S   FOO4 
+00001648  6100 FB64                800          BSR     PARAM 
+0000164C  4E73                     801          RTE 
+0000164E  B23C 0004                802  FOO4    CMP.B   #4,D1             D1 = 4 = Print string pointed at by A4 
+00001652  6606                     803          BNE.S   FOO5 
+00001654  6100 FA24                804          BSR     PSTRING 
+00001658  4E73                     805          RTE 
+0000165A  B23C 0005                806  FOO5    CMP.B   #5,D1             D1 = 5 = Get a hex character 
+0000165E  6606                     807          BNE.S   FOO6 
+00001660  6100 FB12                808          BSR     HEX 
+00001664  4E73                     809          RTE 
+00001666  B23C 0006                810  FOO6    CMP.B   #6,D1             D1 = 6 = Get a hex byte 
+0000166A  6606                     811          BNE.S   FOO7 
+0000166C  6100 FB24                812          BSR     BYTE 
+00001670  4E73                     813          RTE 
+00001672  B23C 0007                814  FOO7    CMP.B   #7,D1             D1 = 7 = Get a word 
+00001676  6606                     815          BNE.S   FOO8 
+00001678  6100 FB28                816          BSR     WORD 
+0000167C  4E73                     817          RTE 
+0000167E  B23C 0008                818  FOO8    CMP.B   #8,D1             D1 = 8 = Get a longword 
+00001682  6606                     819          BNE.S   FOO9 
+00001684  6100 FB22                820          BSR     LONGWD 
+00001688  4E73                     821          RTE 
+0000168A  B23C 0009                822  FOO9    CMP.B   #9,D1             D1 = 9 = Output hex byte 
+0000168E  6606                     823          BNE.S   FOO10  
+00001690  6100 FB7A                824          BSR     OUT2X 
+00001694  4E73                     825          RTE 
+00001696  B23C 000A                826  FOO10   CMP.B   #10,D1            D1 = 10 = Output hex word 
+0000169A  6606                     827          BNE.S   FOO11 
+0000169C  6100 FB76                828          BSR     OUT4X 
+000016A0  4E73                     829          RTE 
+000016A2  B23C 000B                830  FOO11   CMP.B   #11,D1            D1 = 11 = Output hex longword 
+000016A6  6606                     831          BNE.S   FOO12 
+000016A8  6100 FB72                832          BSR     OUT8X 
+000016AC  4E73                     833          RTE 
+000016AE  B23C 000C                834  FOO12   CMP.B   #12,D1            D1 = 12 = Print a space 
+000016B2  6606                     835          BNE.S   FOO13 
+000016B4  6100 FBD6                836          BSR     PSPACE 
+000016B8  4E73                     837          RTE 
+000016BA  B23C 000D                838  FOO13   CMP.B   #13,D1            D1 = 13 = Get a line of text into 
+000016BE  6606                     839          BNE.S   FOO14            the line buffer 
+000016C0  6100 F9CE                840          BSR     GETLINE 
+000016C4  4E73                     841          RTE 
+000016C6  B23C 000E                842  FOO14   CMP.B   #14,D1            D1 = 14 = Tidy up the line in the 
+000016CA  6606                     843          BNE.S   FOO15            line buffer by removing leading 
+000016CC  6100 F9F8                844          BSR     TIDY              leading and multiple embeded spaces 
+000016D0  4E73                     845          RTE 
+000016D2  B23C 000F                846  FOO15   CMP.B   #15,D1            D1 = 15 = Execute the command in 
+000016D6  6606                     847          BNE.S   FOO16            the line buffer 
+000016D8  6100 FA2E                848          BSR     EXECUTE 
+000016DC  4E73                     849          RTE 
+000016DE  B23C 0010                850  FOO16   CMP.B   #16,D1            D1 = 16 = Call RESTORE to transfer 
+000016E2  6606                     851          BNE.S   FOO17            the registers in TSK_T to the 68000 
+000016E4  6100 0428                852          BSR     RESTORE           and therefore execute a program 
+000016E8  4E73                     853          RTE 
+000016EA  B23C 0011                854  FOO17   CMP.B   #17,D1            D1 = 17 = Call ADD_0
+000016EE  6606                     855          BNE.S   FOO18            
+000016F0  6100 FEC2                856          BSR     ADD_0            
+000016F4  4E73                     857          RTE 
+000016F6  B23C 0012                858  FOO18   CMP.B   #18,D1            D1 = 18 = Call SUB_0
+000016FA  6606                     859          BNE.S   FOO19            
+000016FC  6100 FEC4                860          BSR     SUB_0            
+00001700  4E73                     861          RTE 
+00001702  B23C 0013                862  FOO19   CMP.B   #19,D1            D1 = 19 = Call MUL_0
+00001706  6606                     863          BNE.S   FOO20            
+00001708  6100 FEC6                864          BSR     MUL_0            
+0000170C  4E73                     865          RTE 
+0000170E  B23C 0014                866  FOO20   CMP.B   #20,D1            D1 = 20 = Call DIV_0
+00001712  6606                     867          BNE.S   FOO21            
+00001714  6100 FEC8                868          BSR     DIV_0            
+00001718  4E73                     869          RTE
+0000171A  B23C 0015                870  FOO21   CMP.B   #21,D1            D1 = 20 = Call GETLINE to get two digit input
+0000171E  6618                     871          BNE.S   FOO22
+00001720  6100 F96E                872          BSR     GETLINE
+00001724  1219                     873          MOVE.B  (A1)+,D1          get first digit
+00001726  1611                     874          MOVE.B  (A1),D3           get second digit
+00001728  0441 0030                875          subi    #48,d1            convert to number
+0000172C  0443 0030                876          subi    #48,d3            convert to number
+00001730  C2FC 000A                877          MULU    #10,D1            Multiply first digit by 10
+00001734  D601                     878          ADD.B   D1,D3             add digits
+00001736  4E73                     879          RTE
+00001738  B23C 0016                880  FOO22   CMP.B   #22,D1            D1 = 20 = Call DIV_0
+0000173C  660A                     881          BNE.S   FOO23            
+0000173E  6100 F92A                882          BSR     NEWLINE
+00001742  1003                     883          MOVE.B  D3,D0             loading answer to D0
+00001744  6100 FAC6                884          BSR     OUT2X             print D0
+00001748  B23C 0017                885  FOO23   CMP.B   #23,D1            D1 = 20 = Call DIV_0
+0000174C  660A                     886          BNE.S   FOO24
+0000174E  6100 F91A                887          BSR     NEWLINE
+00001752  1003                     888          MOVE.B  D3,D0
+00001754  6100 FABE                889          BSR     OUT4X             print D0
+00001758  B23C 0018                890  FOO24   CMP.B   #24,D1            D1 = 20 = Call DIV_0
+0000175C  660C                     891          BNE.S   FOO25
+0000175E  6100 F930                892          BSR     GETLINE
+00001762  6100 F962                893          BSR     TIDY
+00001766  6100 001A                894          BSR     AtoBCD
+0000176A  B23C 0019                895  FOO25   CMP.B   #25,D1            D1 = 20 = Call DIV_0
+0000176E  6604                     896          BNE.S   FOO26
+00001770  6100 00D2                897          BSR     BCDtoA
+00001774  4E73                     898  FOO26   RTE         
+00001776                           899  * 
+00001776                           900  ************************************************************************* 
+00001776  =00001776                901  TRAP_14  EQU     *
+00001776  6000 02FE                902           BRA     BRKPT            User application breakpoint
+0000177A  4E73                     903           RTE
+0000177C                           904  *
+0000177C                           905  ************************************************************************* 
+0000177C  6000 F8C6                906  TRAP_15  BRA     WARM              
+00001780  4E73                     907           RTE
+00001782                           908  *
+00001782                           909  ************************************************************************* 
+00001782  =00001782                910  AtoBCD  EQU *
+00001782  41F8 4000                911          LEA.L   $4000,A0
+00001786  4298                     912          CLR.L   (A0)+         Clear $4000 to $400B
+00001788  4298                     913          CLR.L   (A0)+
+0000178A  4290                     914          CLR.L   (A0)
+0000178C  4280                     915          CLR.L   D0
+0000178E  4281                     916          CLR.L   D1
+00001790  41EE 00C4                917          LEA.L   LNBUFF(A6),A0     A0 points to line buffer  
+00001794  1018                     918          MOVE.B  (A0)+,D0          Read ASCII character from line buffer
+00001796  B03C 002D                919          CMP.B   #'-',D0       Is the first character in the FP string a minus?
+0000179A  6600 000C                920          BNE NUM3          if not a minus then it is the single integer number
+0000179E  11FC 0080 4000           921          MOVE.B  #$80,$4000
+000017A4  1010                     922          MOVE.B  (A0),D0       assemble minus
+000017A6  5288                     923          ADDA.L  #1,A0
+000017A8  0400 0030                924  NUM3    SUB.B   #48,D0        convert ASCII to Number
+000017AC  11C0 4003                925          MOVE.B  D0,$4003      assemble integer part
+000017B0  5288                     926          ADDA.L  #1,A0         skip decimal point
+000017B2  227C 00004004            927          MOVEA.L #$4004,A1     set assemble address at fraction part
+000017B8  1018                     928  AGAIN3  MOVE.B  (A0)+,D0      get first ASCII number
+000017BA  B03C 0045                929          CMP.B   #'E',D0       is it the end of the fractional part
+000017BE  6700 0024                930          BEQ EXP3          goto exponent section if true
+000017C2  0400 0030                931          SUB.B   #48,D0        convert first ASCII to number
+000017C6  E908                     932          LSL.B   #4,D0         shift first number left 4 bits in D0
+000017C8  1210                     933          MOVE.B  (A0),D1       get second ASCII number in D2
+000017CA  B23C 0045                934          CMP.B   #'E',D1       is it the end of the fractional part
+000017CE  6700 0010                935          BEQ DONE3         goto exponent section if true
+000017D2  0401 0030                936          SUB.B   #48,D1        convert second ASCII to number in D2
+000017D6  8001                     937          OR.B    D1,D0         pack the two numbers in D0
+000017D8  1280                     938          MOVE.B  D0,(A1)       store the packed BCD to its corresponding address
+000017DA  5289                     939          ADDA.L  #1,A1         point A1 to the next packed BCD location
+000017DC  5288                     940          ADDA.L  #1,A0       point A0 to the next ASCII character
+000017DE  60D8                     941          BRA AGAIN3      Repeat until all fractional numbers are converted from ASCII to packed BCD
+000017E0  1280                     942  DONE3   MOVE.B  D0,(A1)     Finish the last number
+000017E2  5288                     943          ADDA.L  #1,A0       advance the pointer past the last fractional number
+000017E4  1010                     944  EXP3    MOVE.B  (A0),D0     test for minus or number then point to next number
+000017E6  B03C 002D                945          CMP.B   #'-',D0
+000017EA  6600 000A                946          BNE EXP12       if not minus then first exp number
+000017EE  0638 0040 4000           947          ADD.B   #$40,$4000  it is a minus exp so set it
+000017F4  5288                     948          ADDA.L  #1,A0
+000017F6  4281                     949  EXP12   CLR.L   D1
+000017F8  1010                     950  EXP13   MOVE.B  (A0),D0
+000017FA  B03C 000D                951          CMP.B   #CR,D0      is it a carriage return?
+000017FE  6700 0008                952          BEQ REV3
+00001802  5201                     953          ADD.B   #1,D1
+00001804  5288                     954          ADDA.L  #1,A0       point to next exponent number
+00001806  60F0                     955          BRA EXP13
+00001808  B23C 0001                956  REV3    CMP.B   #1,D1
+0000180C  6600 000E                957          BNE TWOOR3
+00001810  1020                     958          MOVE.B  -(A0),D0
+00001812  0400 0030                959          SUB.B   #48,D0
+00001816  11C0 4001                960          MOVE.B  D0,$4001
+0000181A  4E75                     961          RTS
+0000181C  1020                     962  TWOOR3  MOVE.B  -(A0),D0
+0000181E  1420                     963          MOVE.B  -(A0),D2
+00001820  0400 0030                964          SUB.B   #48,D0
+00001824  0402 0030                965          SUB.B   #48,D2
+00001828  E90A                     966          LSL.B   #4,D2
+0000182A  8002                     967          OR.B    D2,D0
+0000182C  11C0 4001                968          MOVE.B  D0,$4001
+00001830  B23C 0003                969          CMP.B   #3,D1
+00001834  6600 000C                970          BNE EXIT3
+00001838  1020                     971          MOVE.B  -(A0),D0
+0000183A  0400 0030                972          SUB.B   #48,D0
+0000183E  8138 4000                973          OR.B    D0,$4000
+00001842  4E75                     974  EXIT3   RTS
+00001844                           975  *
+00001844                           976  
+00001844                           977  
+00001844                           978  ************************************************************************* 
+00001844                           979  
+00001844                           980  *
+00001844  =00001844                981  BCDtoA  EQU *
+00001844  3038 4000                982          MOVE.W  $4000,D0    Check for Not A Number or Infinity
+00001848  C07C 7FFF                983          AND.W   #$7FFF,D0
+0000184C  B07C 7FFF                984          CMP.W   #$7FFF,D0
+00001850  6600 0008                985          BNE CONVERT
+00001854  6100 F814                986          BSR NEWLINE
+00001858                           987          *LEA.L  $4000,A4
+00001858                           988          *BSR    PSTRING
+00001858                           989          *BSR    NEWLINE
+00001858  4E75                     990          RTS 
+0000185A  1038 4000                991  CONVERT MOVE.B  $4000,D0
+0000185E  C03C 00C0                992          AND.B   #$C0,D0
+00001862  B03C 0040                993          CMP.B   #$40,D0     Negative Exponent Positive Mantissa
+00001866  6600 0020                994          BNE SM
+0000186A  6100 0096                995          BSR MAN
+0000186E  103C 0045                996          MOVE.B  #'E',D0
+00001872  6100 FCD6                997          BSR PUTCHAR
+00001876  103C 002D                998          MOVE.B  #'-',D0
+0000187A  6100 FCCE                999          BSR PUTCHAR
+0000187E  6100 00C6               1000          BSR EXPO
+00001882  6100 F7E6               1001          BSR NEWLINE
+00001886  4E75                    1002          RTS
+00001888  B03C 0080               1003  SM      CMP.B   #$80,D0     Negative Mantissa Positive Exponent
+0000188C  6600 0028               1004          BNE SEM
+00001890  103C 002D               1005          MOVE.B  #'-',D0
+00001894  6100 FCB4               1006          BSR PUTCHAR
+00001898  6100 0068               1007          BSR MAN
+0000189C  103C 0045               1008          MOVE.B  #'E',D0
+000018A0  6100 FCA8               1009          BSR PUTCHAR
+000018A4  103C 002B               1010          MOVE.B  #'+',D0
+000018A8  6100 FCA0               1011          BSR PUTCHAR
+000018AC  6100 0098               1012          BSR EXPO
+000018B0  6100 F7B8               1013          BSR NEWLINE
+000018B4  4E75                    1014          RTS
+000018B6  B03C 00C0               1015  SEM     CMP.B   #$C0 ,D0    Negative Exponent Negative Mantissa
+000018BA  6600 0028               1016          BNE POS
+000018BE  103C 002D               1017          MOVE.B  #'-',D0
+000018C2  6100 FC86               1018          BSR PUTCHAR
+000018C6  6100 003A               1019          BSR MAN
+000018CA  103C 0045               1020          MOVE.B  #'E',D0
+000018CE  6100 FC7A               1021          BSR PUTCHAR
+000018D2  103C 002D               1022          MOVE.B  #'-',D0
+000018D6  6100 FC72               1023          BSR PUTCHAR
+000018DA  6100 006A               1024          BSR EXPO
+000018DE  6100 F78A               1025          BSR NEWLINE
+000018E2  4E75                    1026          RTS
+000018E4  6100 001C               1027  POS     BSR MAN         Positive Exponent Positive Mantissa
+000018E8  103C 0045               1028          MOVE.B  #'E',D0
+000018EC  6100 FC5C               1029          BSR PUTCHAR
+000018F0  103C 002B               1030          MOVE.B  #'+',D0
+000018F4  6100 FC54               1031          BSR PUTCHAR
+000018F8  6100 004C               1032          BSR EXPO
+000018FC  6100 F76C               1033          BSR NEWLINE
+00001900  4E75                    1034          RTS
+00001902  1038 4003               1035  MAN     MOVE.B  $4003,D0
+00001906  0600 0030               1036          ADD.B   #48,D0
+0000190A  6100 FC3E               1037          BSR PUTCHAR
+0000190E  103C 002E               1038          MOVE.B  #'.',D0
+00001912  6100 FC36               1039          BSR PUTCHAR
+00001916  207C 00004004           1040          MOVEA.L #$4004,A0
+0000191C  1010                    1041  MAN1    MOVE.B  (A0),D0
+0000191E  C03C 00F0               1042          AND.B   #$F0,D0
+00001922  E808                    1043          LSR.B   #4,D0
+00001924  0600 0030               1044          ADD.B   #48,D0
+00001928  6100 FC20               1045          BSR PUTCHAR
+0000192C  1010                    1046          MOVE.B  (A0),D0
+0000192E  C03C 000F               1047          AND.B   #$0F,D0
+00001932  0600 0030               1048          ADD.B   #48,D0
+00001936  6100 FC12               1049          BSR PUTCHAR
+0000193A  5288                    1050          ADDA.L  #1,A0
+0000193C  B1FC 0000400C           1051          CMPA.L  #$400C,A0
+00001942  66D8                    1052          BNE MAN1
+00001944  4E75                    1053          RTS
+00001946  223C 00000F00           1054  EXPO    MOVE.L  #$0F00,D1
+0000194C  7408                    1055          MOVE.L  #$8,D2
+0000194E  3038 4000               1056  AGAIN1  MOVE.W  $4000,D0
+00001952  C041                    1057          AND.W   D1,D0
+00001954  E889                    1058          LSR.L   #4,D1
+00001956  E468                    1059          LSR.W   D2,D0
+00001958  0600 0030               1060          ADD.B   #48,D0
+0000195C  6100 FBEC               1061          BSR PUTCHAR
+00001960  5982                    1062          SUB.L   #4,D2
+00001962  6B00 0004               1063          BMI QUIT
+00001966  60E6                    1064          BRA AGAIN1
+00001968  4E75                    1065  QUIT    RTS
+0000196A                          1066  ************************************************************************* 
+0000196A                          1067  * 
+0000196A                          1068  *  Display exception frame (D0 - D7, A0 - A6, USP, SSP, SR, PC) 
+0000196A                          1069  *  EX_DIS prints registers saved after a breakpoint or exception 
+0000196A                          1070  *  The registers are saved in TSK_T 
+0000196A                          1071  * 
+0000196A  4BEE 011A               1072  EX_DIS  LEA.L   TSK_T(A6),A5      A5 points to display frame 
+0000196E  49FA 03EA               1073          LEA.L   MES3(PC),A4       Point to heading 
+00001972  6100 F716               1074          BSR     HEADING           and print it 
+00001976  3C3C 0007               1075          MOVE.W  #7,D6             8 pairs of registers to display 
+0000197A  4205                    1076          CLR.B   D5                D5 is the line counter 
+0000197C  1005                    1077  EX_D1   MOVE.B  D5,D0             Put current register number in D0 
+0000197E  6100 F872               1078          BSR     OUT1X             and print it 
+00001982  6100 F908               1079          BSR     PSPACE            and a space 
+00001986  5205                    1080          ADD.B   #1,D5             Update counter for next pair 
+00001988  2015                    1081          MOVE.L  (A5),D0           Get data register to be displayed 
+0000198A  6100 F890               1082          BSR     OUT8X             from the frame and print it 
+0000198E  49FA 03E8               1083          LEA.L   MES4(PC),A4       Print string of spaces 
+00001992  6100 F6E6               1084          BSR.L   PSTRING           between data and address registers 
+00001996  202D 0020               1085          MOVE.L  32(A5),D0         Get address register to be displayed 
+0000199A  6100 F880               1086          BSR     OUT8X             which is 32 bytes on from data reg 
+0000199E  6100 F6CA               1087          BSR     NEWLINE 
+000019A2  4BED 0004               1088          LEA.L   4(A5),A5          Point to next pair (ie Di, Ai) 
+000019A6  51CE FFD4               1089          DBRA    D6,EX_D1          Repeat until all displayed 
+000019AA  4BED 0020               1090          LEA.L   32(A5),A5         Adjust pointer by 8 longwords 
+000019AE  6100 F6BA               1091          BSR     NEWLINE           to point to SSP 
+000019B2  49FA 039D               1092          LEA.L   MES2A(PC),A4      Point to "SS =" 
+000019B6  6100 F6C2               1093          BSR     PSTRING           Print it 
+000019BA  201D                    1094          MOVE.L  (A5)+,D0          Get SSP from frame 
+000019BC  6100 F85E               1095          BSR     OUT8X             and display it 
+000019C0  6100 F6A8               1096          BSR     NEWLINE 
+000019C4  49FA 0379               1097          LEA.L   MES1(PC),A4       Point to 'SR =' 
+000019C8  6100 F6B0               1098          BSR     PSTRING           Print it 
+000019CC  301D                    1099          MOVE.W  (A5)+,D0          Get status register 
+000019CE  6100 F844               1100          BSR     OUT4X             Display status 
+000019D2  6100 F696               1101          BSR     NEWLINE 
+000019D6  49FA 0370               1102          LEA.L   MES2(PC),A4       Point to 'PC =' 
+000019DA  6100 F69E               1103          BSR     PSTRING           Print it 
+000019DE  201D                    1104          MOVE.L  (A5)+,D0          Get PC 
+000019E0  6100 F83A               1105          BSR     OUT8X             Display PC 
+000019E4  6000 F684               1106          BRA     NEWLINE           Newline and return 
+000019E8                          1107  * 
+000019E8                          1108  ************************************************************************* 
+000019E8                          1109  
+000019E8  49F9 00001E9D           1110  HELP     LEA.L    JUMPHELP,A4     printing strings for command help
+000019EE  6100 F68A               1111           BSR.W    PSTRING
+000019F2  6100 F676               1112           BSR.W    NEWLINE
+000019F6  49F9 00001ED3           1113           LEA.L    MEMHELP,A4
+000019FC  6100 F67C               1114           BSR.W    PSTRING
+00001A00  6100 F668               1115           BSR.W    NEWLINE
+00001A04  49F9 00001F20           1116           LEA.L    LOADHELP,A4
+00001A0A  6100 F66E               1117           BSR.W    PSTRING
+00001A0E  6100 F65A               1118           BSR.W    NEWLINE
+00001A12  49F9 00001F6A           1119           LEA.L    TVHELP,A4
+00001A18  6100 F660               1120           BSR.W    PSTRING
+00001A1C  4E75                    1121           RTS
+00001A1E                          1122  
+00001A1E                          1123  * 
+00001A1E                          1124  *************************************************************************         
+00001A1E                          1125  * 
+00001A1E                          1126  *  Exception handling routines 
+00001A1E                          1127  * 
+00001A1E  =00001A1E               1128  IL_ER   EQU      *                Illegal instruction exception 
+00001A1E  2F0C                    1129          MOVE.L  A4,-(A7)          Save A4 
+00001A20  49FA 0380               1130          LEA.L   MES10(PC),A4      Point to heading 
+00001A24  6100 F664               1131          BSR     HEADING           Print it 
+00001A28  285F                    1132          MOVE.L  (A7)+,A4          Restore A4 
+00001A2A  6100 0090               1133          BSR.W   GROUP2            Save registers in display frame 
+00001A2E  6100 FF3A               1134          BSR     EX_DIS            Display registers saved in frame 
+00001A32  6000 F610               1135          BRA     WARM              Abort from illegal instruction 
+00001A36                          1136  * 
+00001A36  =00001A36               1137  BUS_ER  EQU     *                 Bus error (group 1) exception 
+00001A36  2F0C                    1138          MOVE.L  A4,-(A7)          Save A4 
+00001A38  49FA 0348               1139          LEA.L   MES8(PC),A4       Point to heading 
+00001A3C  6100 F64C               1140          BSR     HEADING           Print it 
+00001A40  285F                    1141          MOVE.L  (A7)+,A4          Restore A4  
+00001A42  6044                    1142          BRA.S   GROUP1            Deal with group 1 exception 
+00001A44                          1143  * 
+00001A44  =00001A44               1144  ADD_ER  EQU     *                 Address error (group 1) exception 
+00001A44  2F0C                    1145          MOVE.L  A4,-(A7)          Save A4 
+00001A46  49FA 0348               1146          LEA.L   MES9(PC),A4       Point to heading 
+00001A4A  6100 F63E               1147          BSR     HEADING           Print it 
+00001A4E  285F                    1148          MOVE.L  (A7)+,A4          Restore A4
+00001A50  6036                    1149          BRA.S   GROUP1            Deal with group 1 exception 
+00001A52                          1150  * 
+00001A52  =00001A52               1151  DIV0_ER  EQU     *                   Divide By Zero Exception
+00001A52  2F0C                    1152          MOVE.L  A4,-(A7)          Save A4 
+00001A54  49FA 0379               1153          LEA.L   MES13(PC),A4       Point to heading 
+00001A58  6100 F630               1154          BSR     HEADING           Print it 
+00001A5C  285F                    1155          MOVE.L  (A7)+,A4          Restore A4
+00001A5E  6028                    1156          BRA.S   GROUP1            Deal with group 1 exception 
+00001A60                          1157  *
+00001A60  =00001A60               1158  PRIV_ER   EQU     *                 Privilege Violation Exception
+00001A60  2F0C                    1159          MOVE.L  A4,-(A7)          Save A4 
+00001A62  49FA 0380               1160          LEA.L   MES14(PC),A4      Point to heading 
+00001A66  6100 F622               1161          BSR     HEADING           Print it 
+00001A6A  285F                    1162          MOVE.L  (A7)+,A4          Restore A4
+00001A6C  6100 FEFC               1163          BSR     EX_DIS
+00001A70  6000 F5D2               1164          BRA     WARM
+00001A74  6012                    1165          BRA.S   GROUP1            Deal with group 1 exception 
+00001A76                          1166  * 
+00001A76  =00001A76               1167  BRKPT   EQU     *                   Deal with breakpoint 
+00001A76                          1168          *MOVEM.L D0-D7/A0-A6,-(A7)   Save all registers 
+00001A76                          1169          *BSR     BR_CLR              Clear breakpoints in code 
+00001A76                          1170          *MOVEM.L (A7)+,D0-D7/A0-A6   Restore registers 
+00001A76  6144                    1171          BSR.S   GROUP2            Treat as group 2 exception 
+00001A78  49FA 033E               1172          LEA.L   MES11(PC),A4      Point to heading 
+00001A7C  6100 F60C               1173          BSR     HEADING           Print it 
+00001A80  6100 FEE8               1174          BSR     EX_DIS            Display saved registers 
+00001A84  6000 F5BE               1175          BRA     WARM              Return to monitor 
+00001A88                          1176  * 
+00001A88                          1177  *       GROUP1 is called by address and bus error exceptions 
+00001A88                          1178  *       These are "turned into group 2" exceptions (eg TRAP) 
+00001A88                          1179  *       by modifying the stack frame saved by a group 1 exception 
+00001A88                          1180  * 
+00001A88  48E7 8080               1181  GROUP1  MOVEM.L D0/A0,-(A7)       Save working registers 
+00001A8C  206F 0012               1182          MOVE.L  18(A7),A0         Get PC from group 1 stack frame 
+00001A90  302F 000E               1183          MOVE.W  14(A7),D0         Get instruction from stack frame 
+00001A94  B060                    1184          CMP.W   -(A0),D0          Now backtrack to find the "correct PC" 
+00001A96  670E                    1185          BEQ.S   GROUP1A           by matching the op-code on the stack 
+00001A98  B060                    1186          CMP.W   -(A0),D0          with the code in the region of the 
+00001A9A  670A                    1187          BEQ.S   GROUP1A           PC on the stack 
+00001A9C  B060                    1188          CMP.W   -(A0),D0 
+00001A9E  6706                    1189          BEQ.S   GROUP1A 
+00001AA0  B060                    1190          CMP.W   -(A0),D0 
+00001AA2  6702                    1191          BEQ.S   GROUP1A 
+00001AA4  5588                    1192          SUBQ.L  #2,A0 
+00001AA6  2F48 0012               1193  GROUP1A MOVE.L  A0,18(A7)          Restore modified PC to stack frame 
+00001AAA  4CDF 0101               1194          MOVEM.L (A7)+,D0/A0        Restore working registers 
+00001AAE  4FEF 0008               1195          LEA.L   8(A7),A7           Adjust stack pointer to group 1 type 
+00001AB2  6108                    1196          BSR.S   GROUP2             Now treat as group 1 exception 
+00001AB4  6100 FEB4               1197          BSR     EX_DIS             Display contents of exception frame 
+00001AB8  6000 F58A               1198          BRA     WARM               Exit to monitor - no RTE from group 2 
+00001ABC                          1199  * 
+00001ABC  =00001ABC               1200  GROUP2  EQU     *                 Deal with group 2 exceptions 
+00001ABC  48E7 FFFF               1201          MOVEM.L A0-A7/D0-D7,-(A7) Save all registers on the stack 
+00001AC0  303C 000E               1202          MOVE.W  #14,D0            Transfer D0 - D7, A0 - A6 from 
+00001AC4  41EE 011A               1203          LEA.L   TSK_T(A6),A0      the stack to the display frame 
+00001AC8  20DF                    1204  GROUP2A MOVE.L  (A7)+,(A0)+       Move a register from stack to frame 
+00001ACA  51C8 FFFC               1205          DBRA    D0,GROUP2A        and repeat until D0-D7/A0-A6 moved 
+00001ACE  4E6A                    1206          MOVE.L  USP,A2            Get the user stack pointer and put it 
+00001AD0  20CA                    1207          MOVE.L  A2,(A0)+          in the A7 position in the frame 
+00001AD2  201F                    1208          MOVE.L  (A7)+,D0          Now transfer the SSP to the frame, 
+00001AD4  0480 0000000A           1209          SUB.L   #10,D0            remembering to account for the 
+00001ADA  20C0                    1210          MOVE.L  D0,(A0)+          data pushed on the stack to this point 
+00001ADC  225F                    1211          MOVE.L  (A7)+,A1          Copy TOS (return address) to A1 
+00001ADE  30DF                    1212          MOVE.W  (A7)+,(A0)+       Move SR to display frame 
+00001AE0  201F                    1213          MOVE.L  (A7)+,D0          Get PC in D0 
+00001AE2  5580                    1214          SUBQ.L  #2,D0             Move back to current instruction 
+00001AE4  20C0                    1215          MOVE.L  D0,(A0)+          Put adjusted PC in display frame 
+00001AE6  4ED1                    1216          JMP     (A1)              Return from subroutine 
+00001AE8                          1217  * 
+00001AE8                          1218  ************************************************************************* 
+00001AE8                          1219  * 
+00001AE8                          1220  *  GO executes a program either from a supplied address or 
+00001AE8                          1221  *  by using the data in the display frame 
+00001AE8  6100 F6C4               1222  GO       BSR     PARAM               Get entry address (if any) 
+00001AEC  4A07                    1223           TST.B   D7                  Test for error in input 
+00001AEE  6708                    1224           BEQ.S   GO1                 If D7 zero then OK 
+00001AF0  49FA 032B               1225           LEA.L   ERMES1(PC),A4       Else point to error message, 
+00001AF4  6000 F584               1226           BRA     PSTRING             print it and return 
+00001AF8  4A80                    1227  GO1      TST.L   D0                  If no address entered then get 
+00001AFA  670A                    1228           BEQ.S   GO2                 address from display frame 
+00001AFC  2D40 0160               1229           MOVE.L  D0,TSK_T+70(A6)     Else save address in display frame 
+00001B00  3D7C 0700 015E          1230           MOVE.W  #$0700,TSK_T+68(A6) Store dummy status in frame 
+00001B06  6006                    1231  GO2      BRA.S   RESTORE             Restore volatile environment and go 
+00001B08                          1232  * 
+00001B08  6100 007A               1233  GB       BSR     BR_SET              Same as go but presets breakpoints 
+00001B0C  60DA                    1234           BRA.S   GO                  Execute program 
+00001B0E                          1235  * 
+00001B0E                          1236  *        RESTORE moves the volatile environment from the display 
+00001B0E                          1237  *        frame and transfers it to the 68000's registers. This 
+00001B0E                          1238  *        re-runs a program suspended after an exception 
+00001B0E                          1239  * 
+00001B0E  47EE 011A               1240  RESTORE  LEA.L   TSK_T(A6),A3        A3 points to display frame 
+00001B12  47EB 004A               1241           LEA.L   74(A3),A3           A3 now points to end of frame + 4 
+00001B16  4FEF 0004               1242           LEA.L   4(A7),A7            Remove return address from stack 
+00001B1A  303C 0024               1243           MOVE.W  #36,D0              Counter for 37 words to be moved 
+00001B1E  3F23                    1244  REST1    MOVE.W  -(A3),-(A7)         Move word from display frame to stack 
+00001B20  51C8 FFFC               1245           DBRA    D0,REST1            Repeat until entire frame moved 
+00001B24  4CDF 00FF               1246           MOVEM.L (A7)+,D0-D7         Restore old data registers from stack 
+00001B28  4CDF 7F00               1247           MOVEM.L (A7)+,A0-A6         Restore old address registers 
+00001B2C  4FEF 0008               1248           LEA.L   8(A7),A7            Except SSP/USP - so adjust stack 
+00001B30  4E73                    1249           RTE                         Return from exception to run program 
+00001B32                          1250  * 
+00001B32  =00001B32               1251  TRACE    EQU     *                   TRACE exception (rudimentary version) 
+00001B32  287A 0292               1252           MOVE.L  MES12(PC),A4        Point to heading 
+00001B36  6100 F552               1253           BSR     HEADING             Print it 
+00001B3A  6100 FF4C               1254           BSR     GROUP1              Save volatile environment 
+00001B3E  6100 FE2A               1255           BSR     EX_DIS              Display it 
+00001B42  6000 F500               1256           BRA     WARM                Return to monitor 
+00001B46                          1257  * 
+00001B46                          1258  ************************************************************************* 
+00001B46                          1259  *  Breakpoint routines: BR_GET gets the address of a breakpoint and 
+00001B46                          1260  *  puts it in the breakpoint table. It does not plant it in the code. 
+00001B46                          1261  *  BR_SET plants all breakpoints in the code. NOBR removes one or all 
+00001B46                          1262  *  breakpoints from the table. KILL removes breakpoints from the code. 
+00001B46                          1263  * 
+00001B46  6100 F666               1264  BR_GET   BSR     PARAM               Get breakpoint address in table 
+00001B4A  4A07                    1265           TST.B   D7                  Test for input error 
+00001B4C  6708                    1266           BEQ.S   BR_GET1             If no error then continue 
+00001B4E  49FA 02CD               1267           LEA.L   ERMES1(PC),A4       Else display error 
+00001B52  6000 F526               1268           BRA     PSTRING             and return 
+00001B56  47EE 0164               1269  BR_GET1  LEA.L   BP_TAB(A6),A3       A6 points to breakpoint table 
+00001B5A  2A40                    1270           MOVE.L  D0,A5               Save new BP address in A5 
+00001B5C  2C00                    1271           MOVE.L  D0,D6               and in D6 because D0 gets corrupted 
+00001B5E  3A3C 0007               1272           MOVE.W  #7,D5               Eight entries to test 
+00001B62  201B                    1273  BR_GET2  MOVE.L  (A3)+,D0            Read entry from breakpoint table 
+00001B64  660C                    1274           BNE.S   BR_GET3             If not zero display existing BP 
+00001B66  4A86                    1275           TST.L   D6                  Only store a non-zero breakpoint 
+00001B68  6710                    1276           BEQ.S   BR_GET4 
+00001B6A  274D FFFC               1277           MOVE.L  A5,-4(A3)           Store new breakpoint in table 
+00001B6E  3695                    1278           MOVE.W  (A5),(A3)           Save code at BP address in table 
+00001B70  4286                    1279           CLR.L   D6                  Clear D6 to avoid repetition 
+00001B72  6100 F6A8               1280  BR_GET3  BSR     OUT8X               Display this breakpoint 
+00001B76  6100 F4F2               1281           BSR     NEWLINE 
+00001B7A  47EB 0002               1282  BR_GET4  LEA.L   2(A3),A3            Step past stored op-code 
+00001B7E  51CD FFE2               1283           DBRA    D5,BR_GET2          Repeat until all entries tested 
+00001B82  4E75                    1284           RTS                         Return 
+00001B84                          1285  * 
+00001B84  =00001B84               1286  BR_SET   EQU     *                   Plant any breakpoints in user code 
+00001B84  41EE 0164               1287           LEA.L   BP_TAB(A6),A0       A0 points to BP table 
+00001B88  45EE 0160               1288           LEA.L   TSK_T+70(A6),A2     A2 points to PC in display frame 
+00001B8C  2452                    1289           MOVE.L  (A2),A2             Now A2 contains value of PC 
+00001B8E  303C 0007               1290           MOVE.W  #7,D0               Up to eight entries to plant 
+00001B92  2218                    1291  BR_SET1  MOVE.L  (A0)+,D1            Read breakpoint address from table 
+00001B94  670A                    1292           BEQ.S   BR_SET2             If zero then skip planting 
+00001B96  B28A                    1293           CMP.L   A2,D1               Don't want to plant BP at current PC 
+00001B98  6706                    1294           BEQ.S   BR_SET2             location, so skip planting if same 
+00001B9A  2241                    1295           MOVE.L  D1,A1               Transfer BP address to address reg 
+00001B9C  32BC 4E4E               1296           MOVE.W  #TRAP_16,(A1)       Plant op-code for TRAP #14 in code 
+00001BA0  41E8 0002               1297  BR_SET2  LEA.L   2(A0),A0            Skip past op-code field in table 
+00001BA4  51C8 FFEC               1298           DBRA    D0,BR_SET1          Repeat until all entries tested 
+00001BA8  4E75                    1299           RTS 
+00001BAA                          1300  * 
+00001BAA  =00001BAA               1301  NOBR     EQU     *                   Clear one or all breakpoints 
+00001BAA  6100 F602               1302           BSR     PARAM               Get BP address (if any) 
+00001BAE  4A07                    1303           TST.B   D7                  Test for input error 
+00001BB0  6708                    1304           BEQ.S   NOBR1               If no error then skip abort 
+00001BB2  49FA 0269               1305           LEA.L   ERMES1(PC),A4       Point to error message 
+00001BB6  6000 F4C2               1306           BRA     PSTRING             Display it and return 
+00001BBA  4A80                    1307  NOBR1    TST.L   D0                  Test for null address (clear all) 
+00001BBC  6720                    1308           BEQ.S   NOBR4               If no address then clear all entries 
+00001BBE  2240                    1309           MOVE.L  D0,A1               Else just clear breakpoint in A1 
+00001BC0  41EE 0164               1310           LEA.L   BP_TAB(A6),A0       A0 points to BP table 
+00001BC4  303C 0007               1311           MOVE.W  #7,D0               Up to eight entries to test 
+00001BC8  2218                    1312  NOBR2    MOVE.L  (A0)+,D1            Get entry and 
+00001BCA  41E8 0002               1313           LEA.L   2(A0),A0            skip past op-code field 
+00001BCE  B289                    1314           CMP.L   A1,D1               Is this the one? 
+00001BD0  6706                    1315           BEQ.S   NOBR3               If so go and clear entry 
+00001BD2  51C8 FFF4               1316           DBRA    D0,NOBR2            Repeat until all tested 
+00001BD6  4E75                    1317           RTS 
+00001BD8  42A8 FFFA               1318  NOBR3    CLR.L   -6(A0)              Clear address in BP table 
+00001BDC  4E75                    1319           RTS 
+00001BDE  41EE 0164               1320  NOBR4    LEA.L   BP_TAB(A6),A0       Clear all 8 entries in BP table 
+00001BE2  303C 0007               1321           MOVE.W  #7,D0               Eight entries to clear 
+00001BE6  4298                    1322  NOBR5    CLR.L   (A0)+               Clear breakpoint address 
+00001BE8  4258                    1323           CLR.W   (A0)+               Clear op-code field 
+00001BEA  51C8 FFFA               1324           DBRA    D0,NOBR5            Repeat until all done 
+00001BEE  4E75                    1325           RTS 
+00001BF0                          1326  * 
+00001BF0  =00001BF0               1327  BR_CLR   EQU     *                   Remove breakpoints from code 
+00001BF0  41EE 0164               1328           LEA.L   BP_TAB(A6),A0       A0 points to breakpoint table 
+00001BF4  303C 0007               1329           MOVE.W  #7,D0               Up to eight entries to clear 
+00001BF8  2218                    1330  BR_CLR1  MOVE.L  (A0)+,D1            Get address of BP in D1 
+00001BFA  2241                    1331           MOVE.L  D1,A1               and put copy in A1 
+00001BFC  4A81                    1332           TST.L   D1                  Test this breakpoint 
+00001BFE  6702                    1333           BEQ.S   BR_CLR2             If zero then skip BP clearing 
+00001C00  3290                    1334           MOVE.W  (A0),(A1)           Else restore op-code 
+00001C02  41E8 0002               1335  BR_CLR2  LEA.L   2(A0),A0            Skip past op-code field 
+00001C06  51C8 FFF0               1336           DBRA    D0,BR_CLR1          Repeat until all tested 
+00001C0A  4E75                    1337           RTS 
+00001C0C                          1338  * 
+00001C0C                          1339  *  REG_MOD modifies a register in the display frame. The command 
+00001C0C                          1340  *  format is REG <reg> <value>. E.g. REG D3 1200 
+00001C0C                          1341  * 
+00001C0C  4281                    1342  REG_MOD  CLR.L   D1                  D1 to hold name of register 
+00001C0E  41EE 0104               1343           LEA.L   BUFFPT(A6),A0       A0 contains address of buffer pointer 
+00001C12  2050                    1344           MOVE.L  (A0),A0             A0 now points to next char in buffer 
+00001C14  1218                    1345           MOVE.B  (A0)+,D1            Put first char of name in D1 
+00001C16  E159                    1346           ROL.W   #8,D1               Move char one place left 
+00001C18  1218                    1347           MOVE.B  (A0)+,D1            Get second char in D1 
+00001C1A  41E8 0001               1348           LEA.L   1(A0),A0            Move pointer past space in buffer 
+00001C1E  2D48 0104               1349           MOVE.L  A0,BUFFPT(A6)       Update buffer pointer 
+00001C22  4282                    1350           CLR.L   D2                  D2 is the character pair counter 
+00001C24  41FA 01CE               1351           LEA.L   REGNAME(PC),A0      A0 points to string of character pairs 
+00001C28  43D0                    1352           LEA.L   (A0),A1             A1 also points to string 
+00001C2A  B258                    1353  REG_MD1  CMP.W   (A0)+,D1            Compare a char pair with input 
+00001C2C  6712                    1354           BEQ.S   REG_MD2             If match then exit loop 
+00001C2E  5282                    1355           ADD.L   #1,D2               Else increment match counter 
+00001C30  B4BC 00000013           1356           CMP.L   #19,D2              Test for end of loop 
+00001C36  66F2                    1357           BNE     REG_MD1             Continue until all pairs matched 
+00001C38  49FA 01E3               1358           LEA.L   ERMES1(PC),A4       If here then error 
+00001C3C  6000 F43C               1359           BRA     PSTRING             Display error and return 
+00001C40  43EE 011A               1360  REG_MD2  LEA.L   TSK_T(A6),A1        A1 points to display frame 
+00001C44  E582                    1361           ASL.L   #2,D2               Multiply offset by 4 (4 bytes/entry) 
+00001C46  B4BC 00000048           1362           CMP.L   #72,D2              Test for address of PC 
+00001C4C  6602                    1363           BNE.S   REG_MD3             If not PC then all is OK 
+00001C4E  5582                    1364           SUB.L   #2,D2               else dec PC pointer as Sr is a word 
+00001C50  45F1 2000               1365  REG_MD3  LEA.L   (A1,D2),A2          Calculate address of entry in disptable 
+00001C54  2012                    1366           MOVE.L  (A2),D0             Get old contents 
+00001C56  6100 F5C4               1367           BSR     OUT8X               Display them 
+00001C5A  6100 F40E               1368           BSR     NEWLINE 
+00001C5E  6100 F54E               1369           BSR     PARAM               Get new data 
+00001C62  4A07                    1370           TST.B   D7                  Test for input error 
+00001C64  6708                    1371           BEQ.S   REG_MD4             If no error then go and store data 
+00001C66  49FA 01B5               1372           LEA.L   ERMES1(PC),A4       Else point to error message 
+00001C6A  6000 F40E               1373           BRA     PSTRING             print it and return 
+00001C6E  B4BC 00000044           1374  REG_MD4  CMP.L   #68,D2              If this address is the SR then 
+00001C74  6704                    1375           BEQ.S   REG_MD5             we have only a word to store 
+00001C76  2480                    1376           MOVE.L  D0,(A2)             Else store new data in display frame 
+00001C78  4E75                    1377           RTS 
+00001C7A  3480                    1378  REG_MD5  MOVE.W  D0,(A2)             Store SR (one word) 
+00001C7C  4E75                    1379           RTS 
+00001C7E                          1380  * 
+00001C7E                          1381  ************************************************************************* 
+00001C7E                          1382  * 
+00001C7E  =00001C7E               1383  X_UN    EQU     *                 Uninitialized exception vector routine 
+00001C7E  49FA 0203               1384          LEA.L   ERMES6(PC),A4     Point to error message 
+00001C82  6100 F3F6               1385          BSR     PSTRING           Display it 
+00001C86  6100 FCE2               1386          BSR     EX_DIS            Display registers 
+00001C8A  6000 F3B8               1387          BRA     WARM              Abort 
+00001C8E                          1388  * 
+00001C8E                          1389  ************************************************************************* 
+00001C8E                          1390  * 
+00001C8E                          1391  *  All strings and other fixed parameters here 
+00001C8E                          1392  * 
+00001C8E= 54 53 42 55 47 20 ...   1393  BANNER   DC.B     'TSBUG 2 Version 23.07.86',0,0
+00001CA8= 4D 6F 64 69 66 69 ...   1394  MODIFY    DC.B   'Modified by Eugene A. Rockey Jr. Jan.05.2010',0,0
+00001CD6= 66 6F 72 20 75 73 ...   1395  WHY      DC.B     'for use with the M68000 Minimal Computer Configuration',0,0 
+00001D0E= 55 6E 69 76 65 72 ...   1396  WHERE    DC.B     'University of Louisville',0,0
+00001D28= 0D 0A 54 53 32 4D ...   1397  CRLF     DC.B     CR,LF,'TS2MON >',0 
+00001D33= 0D 0A 53 31 00 00       1398  HEADER   DC.B     CR,LF,'S','1',0,0 
+00001D39= 53 39 20 20 00 00       1399  TAIL     DC.B     'S9  ',0,0 
+00001D3F= 20 53 52 20 20 3D ...   1400  MES1     DC.B     ' SR  =  ',0 
+00001D48= 20 50 43 20 20 3D ...   1401  MES2     DC.B     ' PC  =  ',0 
+00001D51= 20 53 53 20 20 3D ...   1402  MES2A    DC.B     ' SS  =  ',0 
+00001D5A= 20 20 44 61 74 61 ...   1403  MES3     DC.B     '  Data reg       Address reg',0,0 
+00001D78= 20 20 20 20 20 20 ...   1404  MES4     DC.B     '        ',0,0 
+00001D82= 42 75 73 20 65 72 ...   1405  MES8     DC.B     'Bus error   ',0,0 
+00001D90= 41 64 64 72 65 73 ...   1406  MES9     DC.B     'Address error   ',0,0 
+00001DA2= 49 6C 6C 65 67 61 ...   1407  MES10    DC.B     'Illegal instruction ',0,0 
+00001DB8= 42 72 65 61 6B 70 ...   1408  MES11    DC.B     'Breakpoint  ',0,0 
+00001DC6= 54 72 61 63 65 20 ...   1409  MES12    DC.B     'Trace   ',0 
+00001DCF= 44 69 76 69 64 65 ...   1410  MES13    DC.B     'Divide by zero error', 0
+00001DE4= 50 72 69 76 69 6C ...   1411  MES14    DC.B     'Privilege error', 0
+00001DF4= 44 30 44 31 44 32 ...   1412  REGNAME  DC.B     'D0D1D2D3D4D5D6D7' 
+00001E04= 41 30 41 31 41 32 ...   1413           DC.B     'A0A1A2A3A4A5A6A7' 
+00001E14= 53 53 53 52             1414           DC.B     'SSSR' 
+00001E18= 50 43 20 20 00          1415           DC.B     'PC  ',0 
+00001E1D= 4E 6F 6E 2D 76 61 ...   1416  ERMES1   DC.B     'Non-valid hexadecimal input  ',0 
+00001E3B= 49 6E 76 61 6C 69 ...   1417  ERMES2   DC.B     'Invalid Command  ',0 
+00001E4D= 4C 6F 61 64 69 6E ...   1418  ERMES3   DC.B     'Loading error',0 
+00001E5B= 54 61 62 6C 65 20 ...   1419  ERMES4   DC.B     'Table full  ',0,0 
+00001E69= 42 72 65 61 6B 70 ...   1420  ERMES5   DC.B     'Breakpoint not active   ',0,0 
+00001E83= 55 6E 69 6E 69 74 ...   1421  ERMES6   DC.B     'Uninitialized exception ',0,0 
+00001E9D= 4A 55 4D 50 20 3C ...   1422  JUMPHELP DC.B     'JUMP <address> causes execution to begin at <address>',0   
+00001ED3= 4D 45 4D 4F 52 59 ...   1423  MEMHELP  DC.B     'MEMORY <address> examines contents of address> and allows them to be changed', 0   
+00001F20= 4C 4F 41 44 20 3C ...   1424  LOADHELP DC.B     'LOAD <string> loads S1/S2 records from the host. <string> is sent to host', 0
+00001F6A= 54 56 20 63 68 65 ...   1425  TVHELP   DC.B     'TV checks all RAM addresses from $4000 to $40FE. Reports corrupt memory addresses', 0
+00001FBC= 20 52 61 6E 67 65 ...   1426  ERMES7   DC.B     ' Range error',0
+00001FC9                          1427  * 
+00001FC9                          1428  *  COMTAB is the built-in command table. All entries are made up of 
+00001FC9                          1429  *         a string length + number of characters to match + the string 
+00001FC9                          1430  *         plus the address of the command relative to COMTAB 
+00001FC9                          1431  * 
+00002000                          1432           ORG      $2000
+00002000= 04 04                   1433  COMTAB   DC.B     4,4              JUMP <address> causes execution to 
+00002002= 4A 55 4D 50             1434           DC.B     'JUMP'           begin at <address> 
+00002006= FFFFF224                1435           DC.L     JUMP-COMTAB                                           
+0000200A= 08 03                   1436           DC.B     8,3              MEMORY <address> examines contents of 
+0000200C= 4D 45 4D 4F 52 59 ...   1437           DC.B     'MEMORY  '       <address> and allows them to be changed 
+00002014= FFFFF23A                1438           DC.L     MEMORY-COMTAB 
+00002018= 04 02                   1439           DC.B     4,2              LOAD <string> loads S1/S2 records 
+0000201A= 4C 4F 41 44             1440           DC.B     'LOAD'           from the host. <string> is sent to host 
+0000201E= FFFFF29A                1441           DC.L     LOAD-COMTAB 
+00002022= 04 02                   1442           DC.B    4,2               GO <address> starts program execution 
+00002024= 47 4F 20 20             1443           DC.B    'GO  '            at <address> and loads regs from TSK_T 
+00002028= FFFFFAE8                1444           DC.L    GO-COMTAB 
+0000202C= 04 04                   1445           DC.B    4,4               HELP 
+0000202E= 48 45 4C 50             1446           DC.B    'HELP'            
+00002032= FFFFF9E8                1447           DC.L    HELP-COMTAB      
+00002036= 00 00                   1448           DC.B    0,0 
+00002038                          1449  * 
+00002038                          1450  ************************************************************************* 
+00002038                          1451  ** 
+00002038                          1452  *  This is a list of the information needed to setup the DCBs 
+00002038                          1453  * 
+00002038  =00002038               1454  DCB_LST  EQU     * 
+00002038= 43 4F 4E 5F 49 4E ...   1455  DCB1     DC.B    'CON_IN  '          Device name (8 bytes) 
+00002040= 0000148E 00008001       1456           DC.L    CON_IN,ACIA_1       Address of driver routine, device 
+00002048= 0002                    1457           DC.W    2                   Number of words in parameter field 
+0000204A= 43 4F 4E 5F 4F 55 ...   1458  DCB2     DC.B    'CON_OUT ' 
+00002052= 000014BE 00008001       1459           DC.L    CON_OUT,ACIA_1 
+0000205A= 0002                    1460           DC.W    2 
+0000205C= 41 55 58 5F 49 4E ...   1461  DCB3     DC.B    'AUX_IN  ' 
+00002064= 0000140E 00008001       1462           DC.L    AUX_IN,ACIA_2 
+0000206C= 0002                    1463           DC.W    2 
+0000206E= 41 55 58 5F 4F 55 ...   1464  DCB4     DC.B    'AUX_OUT ' 
+00002076= 00001420 00008001       1465           DC.L    AUX_OUT,ACIA_2 
+0000207E= 0002                    1466           DC.W    2          
+00002080                          1467  
+00002080                          1468  ************************************************************************* 
+00002080                          1469  * 
+00002080                          1470  *  DCB structure 
+00002080                          1471  * 
+00002080                          1472  *              ----------------------- 
+00002080                          1473  *       0 ->   | DCB  name           | 
+00002080                          1474  *              |---------------------| 
+00002080                          1475  *       8 ->   | Device driver       | 
+00002080                          1476  *              |---------------------| 
+00002080                          1477  *      12 ->   | Device address      | 
+00002080                          1478  *              |---------------------| 
+00002080                          1479  *      16 ->   |Size of param block  | 
+00002080                          1480  *              |---------------------| --- 
+00002080                          1481  *      18 ->   |      Status         |   | 
+00002080                          1482  *              | logical  | physical |   | S 
+00002080                          1483  *              |---------------------|   | 
+00002080                          1484  *              .                     .   . 
+00002080                          1485  *              |---------------------| --- 
+00002080                          1486  *    18+S ->   | Pointer to next DCB | 
+00002080                          1487  * 
+00002080                          1488           END RESET 
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ACIA_1              8001
+ACIA_2              8001
+ADD_0               15B4
+ADD_ER              1A44
+ADR_DAT             1278
+AGAIN1              194E
+AGAIN3              17B8
+ATOBCD              1782
+AUX_IN              140E
+AUX_IN1             1414
+AUX_OT1             1426
+AUX_OUT             1420
+BANNER              1C8E
+BCDTOA              1844
+BP_TAB              164
+BRKPT               1A76
+BR_CLR              1BF0
+BR_CLR1             1BF8
+BR_CLR2             1C02
+BR_GET              1B46
+BR_GET1             1B56
+BR_GET2             1B62
+BR_GET3             1B72
+BR_GET4             1B7A
+BR_SET              1B84
+BR_SET1             1B92
+BR_SET2             1BA0
+BS                  8
+BUFFEND             103
+BUFFER              394
+BUFFPT              104
+BUS_ER              1A36
+BYTE                1192
+B_CLR               15AA
+CN_IVEC             112
+CN_OVEC             116
+COMTAB              2000
+CONVERT             185A
+CON_I1              149C
+CON_I2              14B4
+CON_IN              148E
+CON_OT1             14CC
+CON_OT2             14E2
+CON_OT3             14EA
+CON_OUT             14BE
+CR                  D
+CRLF                1D28
+CTRL_A              1
+DATA                4800
+DCB1                2038
+DCB2                204A
+DCB3                205C
+DCB4                206E
+DCB_LST             2038
+DELAY               13FA
+DELAY1              1404
+DIV0_ER             1A52
+DIVNEG              15F8
+DIV_0               15DE
+DONE3               17E0
+DUMP                135A
+DUMP1               136A
+DUMP2               1376
+DUMP3               1384
+DUMP4               1398
+DUMP5               13A6
+DUMP6               13C0
+DUMP7               13E4
+ECHO                10C
+ERMES1              1E1D
+ERMES2              1E3B
+ERMES3              1E4D
+ERMES4              1E5B
+ERMES5              1E69
+ERMES6              1E83
+ERMES7              1FBC
+ESC                 1B
+EXEC1               111A
+EXEC2               112A
+EXECUTE             1108
+EXIT3               1842
+EXP12               17F6
+EXP13               17F8
+EXP3                17E4
+EXPO                1946
+EX_D1               197C
+EX_DIS              196A
+FIRST               194
+FOO1                162A
+FOO10               1696
+FOO11               16A2
+FOO12               16AE
+FOO13               16BA
+FOO14               16C6
+FOO15               16D2
+FOO16               16DE
+FOO17               16EA
+FOO18               16F6
+FOO19               1702
+FOO2                1636
+FOO20               170E
+FOO21               171A
+FOO22               1738
+FOO23               1748
+FOO24               1758
+FOO25               176A
+FOO26               1774
+FOO3                1642
+FOO4                164E
+FOO5                165A
+FOO6                1666
+FOO7                1672
+FOO8                167E
+FOO9                168A
+GB                  1B08
+GETCH2              1524
+GETCH3              1534
+GETCHAR             14FE
+GETLINE             1090
+GETLN2              109A
+GETLN3              10B4
+GETLN4              10BE
+GETLN5              10C2
+GO                  1AE8
+GO1                 1AF8
+GO2                 1B06
+GROUP1              1A88
+GROUP1A             1AA6
+GROUP2              1ABC
+GROUP2A             1AC8
+HEADER              1D33
+HEADING             108A
+HELP                19E8
+HEX                 1174
+HEX_OK              1190
+IL_ER               1A1E
+IO_OPEN             1570
+IO_REQ              147C
+JUMP                1224
+JUMP1               1232
+JUMPHELP            1E9D
+LF                  A
+LNBUFF              C4
+LOAD                129A
+LOAD1               12B6
+LOAD2               12C2
+LOAD3               12DC
+LOAD4               12F6
+LOAD5               1304
+LOAD6               1306
+LOAD6A              132A
+LOAD7               133C
+LOAD8               1352
+LOADHELP            1F20
+LONGWD              11A8
+MAN                 1902
+MAN1                191C
+MAXCHR              40
+MAX_RAM             498
+MEM1                1244
+MEM2                1262
+MEM3                1276
+MEMHELP             1ED3
+MEMORY              123A
+MES1                1D3F
+MES10               1DA2
+MES11               1DB8
+MES12               1DC6
+MES13               1DCF
+MES14               1DE4
+MES2                1D48
+MES2A               1D51
+MES3                1D5A
+MES4                1D78
+MES8                1D82
+MES9                1D90
+MIN_RAM             494
+MODIFY              1CA8
+MULNEG              160E
+MUL_0               15D0
+NEWLINE             106A
+NOBR                1BAA
+NOBR1               1BBA
+NOBR2               1BC8
+NOBR3               1BD8
+NOBR4               1BDE
+NOBR5               1BE6
+NOT_HEX             118C
+NO_EXT              1040
+NUL                 0
+NUM3                17A8
+OPEN1               1578
+OPEN2               1580
+OPEN3               158E
+OPEN4               15A4
+OUT1X               11F2
+OUT1X1              1204
+OUT2X               120C
+OUT4X               1214
+OUT8X               121C
+PARAM               11AE
+PARAM1              11B6
+PARAM3              11DA
+PARAM4              11DE
+PARAM5              11EA
+PARAM6              11EE
+PARAMTR             108
+POS                 18E4
+PRIV_ER             1A60
+PS1                 107C
+PS2                 1086
+PSPACE              128C
+PSTRING             107A
+PUTASK              1538
+PUTCHAR             154A
+QUIT                1968
+RANGE               13EA
+REGNAME             1DF4
+REG_MD1             1C2A
+REG_MD2             1C40
+REG_MD3             1C50
+REG_MD4             1C6E
+REG_MD5             1C7A
+REG_MOD             1C0C
+RESET               1000
+REST1               1B1E
+RESTORE             1B0E
+REV3                1808
+SEARCH              1134
+SEM                 18B6
+SETACIA             1054
+SETNEG              15FE
+SET_DCB             1432
+SM                  1888
+SPACE               20
+SPUTCHAR            155E
+SRCH2               114E
+SRCH3               1152
+SRCH4               115A
+SRCH6               1164
+SRCH7               116E
+STACK               4400
+ST_DCB1             1442
+ST_DCB2             1446
+SUB_0               15C2
+TAIL                1D39
+TIDY                10C6
+TIDY1               10CC
+TIDY2               10D8
+TIDY3               10E2
+TIDY4               10EC
+TIDY5               10F6
+TIDY6               1102
+TRACE               1B32
+TRAP_0              161E
+TRAP_14             1776
+TRAP_15             177C
+TRAP_16             4E4E
+TSK_T               11A
+TVHELP              1F6A
+TWOOR3              181C
+UTAB                10E
+U_CASE              10D
+WAIT                57
+WARM                1044
+WHERE               1D0E
+WHY                 1CD6
+WORD                11A2
+X_UN                1C7E

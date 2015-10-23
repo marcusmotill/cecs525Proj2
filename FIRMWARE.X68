@@ -122,7 +122,7 @@ HEADING  BSR      NEWLINE           Same as PSTRING but with newline
 * 
 ************************************************************************* 
 * 
-*  GETLINE  inputs a string of characters into a line buffer 
+*  GETLINE  inputs a string of characters into a line buffer
 *           A3 points to next free entry in line buffer 
 *           A2 points to end of buffer 
 *           A1 points to start of buffer 
@@ -887,7 +887,15 @@ FOO23   CMP.B   #23,D1            D1 = 20 = Call DIV_0
         BSR     NEWLINE
         MOVE.B  D3,D0
         BSR     OUT4X             print D0
-FOO24   RTE         
+FOO24   CMP.B   #24,D1            D1 = 20 = Call DIV_0
+        BNE.S   FOO25
+        BSR     GETLINE
+        BSR     TIDY
+        BSR     AtoBCD
+FOO25   CMP.B   #25,D1            D1 = 20 = Call DIV_0
+        BNE.S   FOO26
+        BSR     BCDtoA
+FOO26   RTE         
 * 
 ************************************************************************* 
 TRAP_14  EQU     *
@@ -898,6 +906,163 @@ TRAP_14  EQU     *
 TRAP_15  BRA     WARM              
          RTE
 *
+************************************************************************* 
+AtoBCD	EQU	*
+		LEA.L	$4000,A0
+		CLR.L	(A0)+		  Clear $4000 to $400B
+		CLR.L	(A0)+
+		CLR.L	(A0)
+		CLR.L	D0
+		CLR.L	D1
+		LEA.L   LNBUFF(A6),A0     A0 points to line buffer  
+		MOVE.B  (A0)+,D0          Read ASCII character from line buffer
+		CMP.B	#'-',D0	  	  Is the first character in the FP string a minus?
+		BNE	NUM3		  if not a minus then it is the single integer number
+		MOVE.B	#$80,$4000
+		MOVE.B	(A0),D0		  assemble minus
+		ADDA.L	#1,A0
+NUM3	SUB.B	#48,D0		  convert ASCII to Number
+		MOVE.B	D0,$4003	  assemble integer part
+		ADDA.L	#1,A0		  skip decimal point
+		MOVEA.L	#$4004,A1	  set assemble address at fraction part
+AGAIN3	MOVE.B	(A0)+,D0	  get first ASCII number
+		CMP.B	#'E',D0		  is it the end of the fractional part
+		BEQ	EXP3		  goto exponent section if true
+		SUB.B	#48,D0		  convert first ASCII to number
+		LSL.B   #4,D0		  shift first number left 4 bits in D0
+		MOVE.B	(A0),D1		  get second ASCII number in D2
+		CMP.B	#'E',D1		  is it the end of the fractional part
+		BEQ	DONE3		  goto exponent section if true
+		SUB.B	#48,D1		  convert second ASCII to number in D2
+		OR.B	D1,D0		  pack the two numbers in D0
+		MOVE.B	D0,(A1)		  store the packed BCD to its corresponding address
+		ADDA.L	#1,A1		  point A1 to the next packed BCD location
+		ADDA.L	#1,A0		point A0 to the next ASCII character
+		BRA	AGAIN3		Repeat until all fractional numbers are converted from ASCII to packed BCD
+DONE3	MOVE.B	D0,(A1)		Finish the last number
+		ADDA.L	#1,A0		advance the pointer past the last fractional number
+EXP3	MOVE.B	(A0),D0		test for minus or number then point to next number
+		CMP.B	#'-',D0
+		BNE	EXP12		if not minus then first exp number
+		ADD.B	#$40,$4000	it is a minus exp so set it
+		ADDA.L	#1,A0
+EXP12	CLR.L	D1
+EXP13	MOVE.B	(A0),D0
+		CMP.B	#CR,D0		is it a carriage return?
+		BEQ	REV3
+		ADD.B	#1,D1
+		ADDA.L	#1,A0		point to next exponent number
+		BRA	EXP13
+REV3	CMP.B	#1,D1
+		BNE	TWOOR3
+		MOVE.B	-(A0),D0
+		SUB.B	#48,D0
+		MOVE.B	D0,$4001
+		RTS
+TWOOR3	MOVE.B	-(A0),D0
+		MOVE.B	-(A0),D2
+		SUB.B	#48,D0
+		SUB.B	#48,D2
+		LSL.B	#4,D2
+		OR.B	D2,D0
+		MOVE.B	D0,$4001
+		CMP.B	#3,D1
+		BNE	EXIT3
+		MOVE.B	-(A0),D0
+		SUB.B	#48,D0
+		OR.B	D0,$4000
+EXIT3	RTS
+*
+
+
+************************************************************************* 
+
+*
+BCDtoA	EQU	*
+		MOVE.W	$4000,D0	Check for Not A Number or Infinity
+		AND.W	#$7FFF,D0
+		CMP.W	#$7FFF,D0
+		BNE	CONVERT
+		BSR	NEWLINE
+		*LEA.L	$4000,A4
+		*BSR	PSTRING
+		*BSR	NEWLINE
+		RTS	
+CONVERT	MOVE.B	$4000,D0
+		AND.B	#$C0,D0
+		CMP.B	#$40,D0		Negative Exponent Positive Mantissa
+		BNE	SM
+		BSR	MAN
+		MOVE.B	#'E',D0
+		BSR	PUTCHAR
+		MOVE.B	#'-',D0
+		BSR	PUTCHAR
+		BSR	EXPO
+		BSR	NEWLINE
+		RTS
+SM		CMP.B	#$80,D0		Negative Mantissa Positive Exponent
+		BNE	SEM
+		MOVE.B	#'-',D0
+		BSR	PUTCHAR
+		BSR	MAN
+		MOVE.B	#'E',D0
+		BSR	PUTCHAR
+		MOVE.B	#'+',D0
+		BSR	PUTCHAR
+		BSR	EXPO
+		BSR	NEWLINE
+		RTS
+SEM		CMP.B	#$C0 ,D0	Negative Exponent Negative Mantissa
+		BNE	POS
+		MOVE.B	#'-',D0
+		BSR	PUTCHAR
+		BSR	MAN
+		MOVE.B	#'E',D0
+		BSR	PUTCHAR
+		MOVE.B	#'-',D0
+		BSR	PUTCHAR
+		BSR	EXPO
+		BSR	NEWLINE
+		RTS
+POS		BSR	MAN			Positive Exponent Positive Mantissa
+		MOVE.B	#'E',D0
+		BSR	PUTCHAR
+		MOVE.B	#'+',D0
+		BSR	PUTCHAR
+		BSR	EXPO
+		BSR	NEWLINE
+		RTS
+MAN		MOVE.B	$4003,D0
+		ADD.B	#48,D0
+		BSR	PUTCHAR
+		MOVE.B	#'.',D0
+		BSR	PUTCHAR
+		MOVEA.L	#$4004,A0
+MAN1	MOVE.B	(A0),D0
+		AND.B	#$F0,D0
+		LSR.B	#4,D0
+		ADD.B	#48,D0
+		BSR	PUTCHAR
+		MOVE.B	(A0),D0
+		AND.B	#$0F,D0
+		ADD.B	#48,D0
+		BSR	PUTCHAR
+		ADDA.L	#1,A0
+		CMPA.L	#$400C,A0
+		BNE	MAN1
+		RTS
+EXPO	MOVE.L	#$0F00,D1
+		MOVE.L	#$8,D2
+AGAIN1	MOVE.W	$4000,D0
+		AND.W	D1,D0
+		LSR.L	#4,D1
+		LSR.W	D2,D0
+		ADD.B	#48,D0
+		BSR	PUTCHAR
+		SUB.L	#4,D2
+		BMI	QUIT
+		BRA	AGAIN1
+QUIT	RTS
 ************************************************************************* 
 * 
 *  Display exception frame (D0 - D7, A0 - A6, USP, SSP, SR, PC) 
