@@ -1,7 +1,7 @@
 *        TSBUG2 - 68000 monitor - version of 05 January 2010 
 
 	 ORG      $0
-         DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+         DC.L STACK,RESET,BUS_ER,ADD_ER,IL_ER,DIV0_ER,X_UN,X_UN,PRIV_ER,X_UN,X_UN,FTRAP,X_UN,X_UN,X_UN,X_UN
          DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
          DC.L TRAP_0,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,BRKPT,TRAP_15,X_UN
 *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
@@ -17,6 +17,7 @@
 *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
 *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
 *         DC.L X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN,X_UN
+
 *                                   Symbol equates 
 BS       EQU      $08               Back_space 
 CR       EQU      $0D               Carriage_return 
@@ -49,6 +50,12 @@ FIRST    DS.B     512               DCB area
 BUFFER   DS.B     256               256 bytes for I/O buffer 
 MIN_RAM  DC.L     $004000           minimum RAM address to be checked
 MAX_RAM  DC.L     $004100           maximum RAM address to be checked
+
+MC68881	 EQU	$80000	            MC68881 BASE ADDRESS
+COMMAND	 EQU	$0A	                COMMAND REGISTER
+RESPONSE EQU	$00	                RESPONSE REGISTER
+OPER	 EQU	$10	                OPERAND REGISTER
+
 * 
 ************************************************************************* 
 * 
@@ -779,6 +786,51 @@ MULNEG  MOVE.B    #1,D4           setting neg flag
         ADD.B     #1,D3
         RTS
 
+*************************************************************************
+FTRAP 	EQU *
+		MOVE.L 	  2(A7),D0 		  Get PC from system stack.
+        MOVEA.L   D0,A0 		  COPY to A0 to become an address for later use.
+		ADD.L 	  #6,D0 		  Calculate address of next instruction
+		MOVE.L 	  D0,2(A7) 		  Update PC on system stack for FMOVE instruction
+        MOVE.L 	  (A0),D0 		  Get FPU opcode/command.
+		AND.L 	  #$380000,D0 	  Mask opcode/command to get effective address mode.
+	    CMP.L 	  #0,D0 	      What is the addressing mode used in the FPU instruction?
+        BEQ 	  RTOR 			  Is it Dn or FPn register mode?
+		MOVE.L 	  (A0),D0 		  Must be An or (An) mode
+		BTST 	  #13,D0 		  Test bit 13 or dir of the FPU command word
+		BNE 	  RTOM 			  Is it register to memory operation or memory to register operation		
+        
+MTOR    MOVE.W	  D0, MC68881+COMMAND       Move command word into command reg.
+NULCA	CMPI	  #$8900, MC68881+RESPONSE  Test for response from FPU
+		BEQ.S	  NULCA                     Keep testing
+		MOVE.L	  $4000, MC68881+OPER       Move the first 4 Bytes into operand reg.
+		MOVE.L	  $4004, MC68881+OPER       Move the second 4 Bytes
+		MOVE.L	  $4008, MC68881+OPER       Move the third 4 Bytes
+NULREL	TST.B	  MC68881+RESPONSE
+		BMI.S	  NULREL
+		RTE
+		
+RTOM    MOVE.W 	D0, MC68881+COMMAND
+NULCA1	CMPI	#$8900, MC68881+RESPONSE
+		BEQ.S	NULCA1
+		MOVE.L	MC68881+OPER, $4000
+		MOVE.L  MC68881+OPER, $4004
+		MOVE.L  MC68881+OPER, $4008
+NULREL1	TST.B	MC68881+RESPONSE
+		BMI.S	NULREL1
+		RTE
+		
+RTOR    LEA.L   TEST,A4    
+        BSR     PSTRING
+        MOVE.W	D0, MC68881+COMMAND
+NULCA2	TST.B	MC68881+RESPONSE
+		BMI.S	NULCA2
+		
+		MOVE.L 	2(A7),D0 		  Get PC from system stack.
+		ADD.L   #4,D0             Calculate address of next instruction
+		MOVE.L  D0,2(A7)          Update PC on system stack for FADD instruction
+		RTE
+
 ************************************************************************* 
 * 
 * 
@@ -1424,6 +1476,7 @@ MEMHELP  DC.B     'MEMORY <address> examines contents of address> and allows the
 LOADHELP DC.B     'LOAD <string> loads S1/S2 records from the host. <string> is sent to host', 0
 TVHELP   DC.B     'TV checks all RAM addresses from $4000 to $40FE. Reports corrupt memory addresses', 0
 ERMES7   DC.B     ' Range error',0
+TEST     DC.B     'TEST',0,0
 * 
 *  COMTAB is the built-in command table. All entries are made up of 
 *         a string length + number of characters to match + the string 
@@ -1486,6 +1539,12 @@ DCB4     DC.B    'AUX_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
+
+
+
+
+
 
 
 

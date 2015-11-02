@@ -845,14 +845,15 @@ START:		NOP
 		TRAP      #0
 		LEA.L 	  $4000,A1
 		MEMREGP   FMOVE,(A1),FP1
-		REGREG	  FSQRT,FP1,FP4
-		REGMEML	  FMOVE,FP4,D0
+		MOVE.B    #24,D1
+		TRAP      #0
+		LEA.L 	  $4000,A1
+		MEMREGP   FMOVE,(A1),FP2
+		REGREG	  FADD,FP1,FP2
+		REGMEML	  FMOVE,FP2,D0
 		NOP
 		TRAP	#14
 		TRAP	#15
-		END	START		; last line of source	
 
-*~Font name~Courier New~
-*~Font size~10~
-*~Tab type~1~
-*~Tab size~4~
+
+		END	START		; last line of source	

@@ -1,0 +1,993 @@
+00004C00 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 10/28/15 3:50:26 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Program    : MC68881 Driver by Motorola
+00000000                             3  * Written by : Eugene Rockey
+00000000                             4  * Date       : March 19th, 2011
+00000000                             5  * Description: Drive the MC68881 FPU as a peripheral device.
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  *
+00000000                             8  *   MC68881 FLOATING POINT INSTRUCTION CODES
+00000000                             9  *
+00000000                            10  ************************************************************
+00000000  =00000000                 11  FMOVE   EQU $00 MOVE
+00000000  =00000001                 12  FINT    EQU $01 INTEGER PART
+00000000  =00000002                 13  FSINH   EQU $02 SINH
+00000000  =00000004                 14  FSQRT   EQU $04 SQUARE ROOT
+00000000  =00000006                 15  FLOGNP1 EQU $06 LOGN(1+x)
+00000000  =00000008                 16  FETOXM1 EQU $08 ((e^x)-1)
+00000000  =00000009                 17  FTANH   EQU $09 TANH
+00000000  =0000000A                 18  FATAN   EQU $0A ARCTAN
+00000000  =0000000C                 19  FASIN   EQU $0C ARCSIN
+00000000  =0000000D                 20  FATANH  EQU $0D ARCTANH
+00000000  =0000000E                 21  FSIN    EQU $0E SINE
+00000000  =0000000F                 22  FTAN    EQU $0F TANGENT
+00000000  =00000010                 23  FETOX   EQU $10 e^x
+00000000  =00000011                 24  FTWOTOX EQU $11 2^x
+00000000  =00000012                 25  FTENTOX EQU $12 10^x
+00000000  =00000014                 26  FLOGN   EQU $14 LOGN
+00000000  =00000015                 27  FLOG10  EQU $15 LOG10
+00000000  =00000016                 28  FLOG2   EQU $16 LOG2
+00000000  =00000018                 29  FABS    EQU $18 ABSOUTE VALUE
+00000000  =00000019                 30  FCOSH   EQU $19 COSH
+00000000  =0000001A                 31  FNEG    EQU $1A NEGATE
+00000000  =0000001C                 32  FACOS   EQU $1C ARCCOS
+00000000  =0000001D                 33  FCOS    EQU $1D COSINE
+00000000  =0000001E                 34  FGETEXP EQU $1E GET EXPONENT
+00000000  =0000001F                 35  FGETMAN EQU $1F GET MANTISSA
+00000000  =00000020                 36  FDIV    EQU $20 DIVIDE
+00000000  =00000021                 37  FMOD    EQU $21 MODULO REMAINDER
+00000000  =00000022                 38  FADD    EQU $22 ADD
+00000000  =00000023                 39  FMUL    EQU $23 MULTIPLY
+00000000  =00000024                 40  FSGLDIV EQU $24 SINGLE DIVIDE
+00000000  =00000025                 41  FREM    EQU $25 IEEE REMAINDER
+00000000  =00000026                 42  FSCALE  EQU $26 SCALE EXPONENT
+00000000  =00000027                 43  FSGLMUL EQU $27 SINGLE MULTIPLY
+00000000  =00000028                 44  FSUB    EQU $28 SUBTRACT
+00000000  =00000038                 45  FCMP    EQU $38 COMPARE
+00000000  =0000003A                 46  FTST    EQU $3A TEST
+00000000  =00000030                 47  FSINCOS EQU $30 SIMULTANEOUS FP SINE AND COSINE
+00000000                            48  ********************************************************
+00000000                            49  *
+00000000                            50  *   MC68881 INSTRUCTION CODES FOR CONDITIONAL BRANCHING
+00000000                            51  *
+00000000                            52  *******************************************************
+00000000  =00000001                 53  EQ  EQU $01 EQUAL
+00000000  =0000000E                 54  NEQ EQU $0E NOT EQUAL
+00000000  =00000012                 55  GT  EQU $12 GREATER THAN
+00000000  =0000001D                 56  NGT EQU $1D NOT GREATER THAN
+00000000  =00000013                 57  GE  EQU $13 GREATER THAN OR EQUAL
+00000000  =0000001C                 58  NGE EQU $1C NOT(GREATER THAN OR EQUAL)
+00000000  =00000014                 59  LT  EQU $14 LESS THAN
+00000000  =0000001B                 60  NLT EQU $1B NOT LESS THAN
+00000000  =00000015                 61  LE  EQU $15 LESS THAN OR EQUAL
+00000000  =0000001A                 62  NLE EQU $1A NOT(LESS THAN OR EQUAL)
+00000000  =00000016                 63  GL  EQU $16 GREATER OR LESS THAN
+00000000  =00000019                 64  NGL EQU $19 NOT(GREATER OR LESS THAN)
+00000000  =00000017                 65  GLE EQU $17 GREATER OR LESS OR EQUAL
+00000000  =00000018                 66  NGLE    EQU $18 NOT(GREATER OR LESS OR EQUAL)
+00000000  =00000002                 67  OGT EQU $02 ORDERED GREATER THAN
+00000000  =0000000D                 68  ULE EQU $0D UNORDERED OR LESS OR EQUAL
+00000000  =00000003                 69  OGE EQU $03 ORDERED GREATER THAN OR EQUAL
+00000000  =0000000C                 70  ULT EQU $0C UNORDERED OR LESS THAN
+00000000  =00000004                 71  OLT EQU $04 ORDERED LESS THAN
+00000000  =0000000B                 72  UGE EQU $0B UNORDERED OR GREATER OR EQUAL
+00000000  =00000005                 73  OLE EQU $05 ORDERED LESS THAN OR EQUAL
+00000000  =0000000A                 74  UGT EQU $0A UNORDERED OR GREATER
+00000000  =00000006                 75  OGL EQU $06 ORDERED GREATER OR LESS THAN
+00000000  =00000009                 76  UEQ EQU $09 UNORDERED OR EQUAL
+00000000  =00000007                 77  OR  EQU $07 ORDERED
+00000000  =00000008                 78  UN  EQU $08 UNORDERED
+00000000  =00000000                 79  F   EQU $00 FALSE (NEVER BRANCH)
+00000000  =0000000F                 80  T   EQU $0F TRUE (ALWAYS BRANCH)
+00000000  =00000010                 81  SF  EQU $10 SIGNALING FALSE (NEVER BRANCH)
+00000000  =0000001F                 82  ST  EQU $1F SIGNALING TRUE (ALWAYS BRANCH)
+00000000  =00000011                 83  SEQ EQU $11 SIGNALING EQUAL
+00000000  =0000001E                 84  SNEQ    EQU $1E SIGNALING NOT EQUAL
+00000000                            85  ***********************************************************************
+00000000                            86  *
+00000000                            87  *   THESE ARE THE MC68881 INTERNAL REGISTERS FOR THE BASE 
+00000000                            88  *   ADDRESS $80000 (MC68881 ADAPTER BOARD)
+00000000                            89  *
+00000000                            90  ***********************************************************************
+00000000  =00080000                 91  MC68881     EQU $80000  MC68881 BASE ADDRESS
+00000000  =0000000A                 92  COMMAND     EQU $0A COMMAND REGISTER
+00000000  =00000000                 93  RESPONSE    EQU $00 RESPONSE REGISTER
+00000000  =00000010                 94  OPER        EQU $10 OPERAND REGISTER
+00000000  =0000000E                 95  COND        EQU $0E CONDITION REGISTER
+00000000  =00000004                 96  SAVE        EQU $04 SAVE REGISTER
+00000000  =00000006                 97  RESTORE     EQU $06 RESTORE REGISTER
+00000000  =00000014                 98  REGSEL      EQU $14 REGISTER SELECT
+00000000  =00009000                 99  CONTROL     EQU $9000   MC68881 CONTROL REGISTER
+00000000  =00008800                100  STATUS      EQU $8800   MC68881 STATUS REGISTER
+00000000  =00008400                101  IADDRESS    EQU $8400   MC68881 INSTRUCTION ADDRESS REGISTER
+00000000  =00000000                102  TFBIT       EQU $0  TRUE/FALSE BIT OF THE RESPONSE REGISTER
+00000000                           103  *************************************************************************
+00000000                           104  *
+00000000                           105  *   THE FLOATING POINT REGISTERS
+00000000                           106  *
+00000000                           107  *************************************************************************
+00000000  =00000000                108  FP0 EQU $00 FLOATING POINT REGISTER #0
+00000000  =00000001                109  FP1 EQU $01 ""  ""  ""  #1
+00000000  =00000002                110  FP2 EQU $02 ""  ""  ""  #2
+00000000  =00000003                111  FP3 EQU $03 ""  ""  ""  #3
+00000000  =00000004                112  FP4 EQU $04 ""  ""  ""  #4
+00000000  =00000005                113  FP5 EQU $05 ""  ""  ""  #5
+00000000  =00000006                114  FP6 EQU $06 ""  ""  ""  #6
+00000000  =00000007                115  FP7 EQU $07 ""  ""  ""  #7
+00000000                           116  ************************************************************************
+00000000                           117  
+00000000                           118  *************************************************************************
+00000000                           119  *
+00000000                           120  *   MC68881 SINGLE PRECISION FP-REG. VALUE TO MEMORY OPERATION
+00000000                           121  *   SYNTAX: REGMENS INSTRUCTION,FPM,<EA>
+00000000                           122  *   WHERE: INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FMOVE)
+00000000                           123  *       FPM = SOURCE FP REGISTER
+00000000                           124  *       <EA> = DESTINATION ADDRESSING MODE
+00000000                           125  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           126  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX), XXX.W, XXX.L,
+00000000                           127  *               (D,PC), D(PC,IX)
+00000000                           128  *
+00000000                           129  *************************************************************************
+00000000                           130  REGMENS     MACRO
+00000000                           131          IFC '\4',''
+00000000                           132          MOVE.W  #$6400+(\2<<7)+\1,MC68881+COMMAND
+00000000                           133  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           134          BEQ.S   \@NULCA
+00000000                           135          MOVE.L  MC68881+OPER,\3
+00000000                           136  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           137          BMI.S   \@NULREL
+00000000                           138          ENDC
+00000000                           139          IFNC    '\4',''
+00000000                           140          MOVE.W  #$6400+(\2<<7)+\1,MC68881+COMMAND
+00000000                           141  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           142          BEQ.S   \@NULCA
+00000000                           143          MOVE.L  MC68881+OPER,\3,\4
+00000000                           144  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           145          BMI.S   \@NULREL
+00000000                           146          ENDC
+00000000                           147          ENDM
+00000000                           148  *************************************************************************
+00000000                           149  *
+00000000                           150  *   MC68881 LONG WORD LENGTH FP-REG. VALUE TO MEMORY OPERATION
+00000000                           151  *   SYNTAX: REGMEML INSTRUCTION,FPM,<EA>
+00000000                           152  *   INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FMOVE)
+00000000                           153  *           FPM = SOURCE FP REGISTER
+00000000                           154  *           <EA> = DESTINATION ADDRESSING MODE
+00000000                           155  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           156  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX), XXX.W, XXX.L,
+00000000                           157  *               (D,PC), D(PC,IX)
+00000000                           158  *
+00000000                           159  *************************************************************************
+00000000                           160  REGMEML     MACRO
+00000000                           161          IFC '\4',''
+00000000                           162          MOVE.W  #$6000+(\2<<7)+\1,MC68881+COMMAND
+00000000                           163  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           164          BEQ.S   \@NULCA
+00000000                           165          MOVE.L  MC68881+OPER,\3
+00000000                           166  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           167          BMI.S   \@NULREL
+00000000                           168          ENDC
+00000000                           169          IFNC '\4',''
+00000000                           170          MOVE.W  #$6000+(\2<<7)+\1,MC68881+COMMAND
+00000000                           171  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           172          BEQ.S   \@NULCA
+00000000                           173          MOVE.L  MC68881+OPER,\3,\4
+00000000                           174  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           175          BMI.S   \@NULREL
+00000000                           176          ENDC
+00000000                           177          ENDM
+00000000                           178  *************************************************************************
+00000000                           179  *
+00000000                           180  *   MC68881 WORD LENGTH FP-REG. VALUE TO MEMORY OPERATION
+00000000                           181  *   SYNTAX: REGMEMW INSTRUCTION,FPM,<EA>
+00000000                           182  *   INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FMOVE)
+00000000                           183  *           FPM = SOURCE FP REGISTER
+00000000                           184  *           <EA> = DESTINATION ADDRESSING MODE
+00000000                           185  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           186  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX), XXX.W, XXX.L,
+00000000                           187  *               (D,PC), D(PC,IX)
+00000000                           188  *
+00000000                           189  *************************************************************************
+00000000                           190  REGMEMW     MACRO
+00000000                           191          IFC '\4',''
+00000000                           192          MOVE.W  #$7000+(\2<<7)+\1,MC68881+COMMAND
+00000000                           193  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           194          BEQ.S   \@NULCA
+00000000                           195          MOVE.W  MC68881+OPER,\3
+00000000                           196  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           197          BMI.S   \@NULREL
+00000000                           198          ENDC
+00000000                           199          IFNC '\4',''
+00000000                           200          MOVE.W  #$7000+(\2<<7)+\1,MC68881+COMMAND
+00000000                           201  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           202          BEQ.S   \@NULCA
+00000000                           203          MOVE.W  MC68881+OPER,\3,\4
+00000000                           204  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           205          BMI.S   \@NULREL
+00000000                           206          ENDC
+00000000                           207          ENDM
+00000000                           208  *************************************************************************
+00000000                           209  *
+00000000                           210  *   MC68881 BYTE LENGTH FP-REG. VALUE TO MEMORY OPERATION
+00000000                           211  *   SYNTAX: REGMEMW INSTRUCTION,FPM,<EA>
+00000000                           212  *   INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FMOVE)
+00000000                           213  *           FPM = SOURCE FP REGISTER
+00000000                           214  *           <EA> = DESTINATION ADDRESSING MODE
+00000000                           215  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           216  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX), XXX.W, XXX.L,
+00000000                           217  *               (D,PC), D(PC,IX)
+00000000                           218  *
+00000000                           219  *************************************************************************
+00000000                           220  REGMEMB     MACRO
+00000000                           221          IFC '\4',''
+00000000                           222          MOVE.W  #$7800+(\2<<7)+\1,MC68881+COMMAND
+00000000                           223  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           224          BEQ.S   \@NULCA
+00000000                           225          MOVE.B  MC68881+OPER,\3
+00000000                           226  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           227          BMI.S   \@NULREL
+00000000                           228          ENDC
+00000000                           229          IFNC '\4',''
+00000000                           230          MOVE.W  #$7800+(\2<<7)+\1,MC68881+COMMAND
+00000000                           231  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           232          BEQ.S   \@NULCA
+00000000                           233          MOVE.B  MC68881+OPER,\3,\4
+00000000                           234  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           235          BMI.S   \@NULREL
+00000000                           236          ENDC
+00000000                           237          ENDM
+00000000                           238  ****************************************************************************
+00000000                           239  *
+00000000                           240  *   MC68881 DOUBLE PRECISION FP-REG. VALUE TO MEMORY OPERATION
+00000000                           241  *   SYNTAX: REGMEND INSTRUCTION,FPM,<EA>
+00000000                           242  *   WHERE: INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FMOVE)
+00000000                           243  *       FPM = SOURCE FP REGISTER
+00000000                           244  *       <EA> = AN ADDRESS REGISTER, SURROUNDED BY PARENTHESIS,
+00000000                           245  *           CONTAINING THE PREVIOUSLY LOADED EFFECTIVE ADDRESS
+00000000                           246  *           (I.E. (A0)).
+00000000                           247  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           248  *   VALID ADDRESSING MODES: (AN)
+00000000                           249  *
+00000000                           250  ****************************************************************************
+00000000                           251  REGMEMD     MACRO
+00000000                           252          MOVE.W  #$7400+(\2<<7)+\1,MC68881+COMMAND
+00000000                           253  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           254          BEQ.S   \@NULCA
+00000000                           255          MOVE.L  MC68881+OPER,\3
+00000000                           256          MOVE.L  MC68881+OPER,4\3
+00000000                           257  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           258          BMI.S   \@NULREL
+00000000                           259          ENDM
+00000000                           260  ****************************************************************************
+00000000                           261  *
+00000000                           262  *   MC68881 EXTENDED PRECISION FP-REG. VALUE TO MEMORY OPERATION
+00000000                           263  *   SYNTAX: REGMEMX INSTRUCTION,FPM,<EA>
+00000000                           264  *   WHERE: INSTRUCTION = FP INSTRUCTION NUEMONIC (I.. FMOVE)
+00000000                           265  *       FPM = SOURCE FP REGISTER
+00000000                           266  *       <EA> = AN ADDRESS REGISTER, SURROUNDED BY PARENTHESIS,
+00000000                           267  *       CONTAINING THE PREVIOUSLY LOADED EFFECTIVE ADDRESS (I.E. (A0)).
+00000000                           268  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           269  *   VALID ADDRESSING MODES: (AN)
+00000000                           270  *
+00000000                           271  *****************************************************************************
+00000000                           272  REGMEMX     MACRO
+00000000                           273          MOVE.W  #$6800+(\2<<7)+\1,MC68881+COMMAND
+00000000                           274  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           275          BEQ.S   \@NULCA
+00000000                           276          MOVE.L  MC68881+OPER,\3
+00000000                           277          MOVE.L  MC68881+OPER,4\3
+00000000                           278          MOVE.L  MC68881+OPER,8\3
+00000000                           279  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           280          BMI.S   \@NULREL
+00000000                           281          ENDM
+00000000                           282  *****************************************************************************
+00000000                           283  *
+00000000                           284  *   MC68881 MOVE BYTE IN MEMORY OR IN Dn TO FP-REG. OPERATION
+00000000                           285  *   SYNTAX: MEMREGB INSTRUCTION,<EA>,FPN
+00000000                           286  *   WHERE: INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FADD)
+00000000                           287  *       <EA> = SOURCE ADDRESSING MOD
+00000000                           288  *       FPN = DESTINATION REGISTER
+00000000                           289  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           290  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX), XXX.W, XXX.L,
+00000000                           291  *               (D,PC), D(PC,IX)
+00000000                           292  *   THE COMMENTED OUT CODE SHOWS HOW A USER MAY IMPLEMENT FSINCOS IN A MEM. TO REG.
+00000000                           293  *   TRANSFER USING THE FOLLOWING INSTRUCTION FORMAT:
+00000000                           294  *   MEMREGB INSTRUCTION,<EA>,FPN,FPQ (FPQ = 2ND DESTINATION REG.)
+00000000                           295  *
+00000000                           296  *****************************************************************************
+00000000                           297  MEMREGB     MACRO
+00000000                           298          IFC '\1','FSINCOS'
+00000000                           299          IFC '\5',''
+00000000                           300          MOVE.W  #$5800+(\4<<7)+\3+\1,MC68881+COMMAND
+00000000                           301  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           302          BEQ.S   \@NULCA
+00000000                           303          
+00000000                           304          MOVE.B  \2,MC68881+OPER
+00000000                           305  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           306          BMI.S   \@NULREL
+00000000                           307          ENDC
+00000000                           308          IFNC    '\5',''
+00000000                           309          MOVE.W  #$5800+(\5<<7)+\4+\1,MC68881+COMMAND
+00000000                           310  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           311          BEQ.S   \@NULCA
+00000000                           312          
+00000000                           313          MOVE.B  \2,\3,MC68881+OPER
+00000000                           314  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           315          BMI.S   \@NULREL
+00000000                           316          ENDC
+00000000                           317          ENDC
+00000000                           318          IFNC    '\1','FSINCOS'
+00000000                           319          IFC '\4',''
+00000000                           320          MOVE.W  #$5800+(\3<<7)+\1,MC68881+COMMAND
+00000000                           321  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           322          BEQ.S   \@NULCA
+00000000                           323          
+00000000                           324          MOVE.B  \2,MC68881+OPER
+00000000                           325  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           326          BMI.S   \@NULREL
+00000000                           327          ENDC
+00000000                           328          IFNC    '\4',''
+00000000                           329          MOVE.W  #$5800+(\4<<7)+\1,MC68881+COMMAND
+00000000                           330  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           331          BEQ.S   \@NULCA
+00000000                           332          
+00000000                           333          MOVE.B  \2,\3,MC68881+OPER
+00000000                           334  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           335          BMI.S   \@NULREL
+00000000                           336          ENDC
+00000000                           337          ENDC
+00000000                           338          ENDM
+00000000                           339  ********************************************************************************
+00000000                           340  *
+00000000                           341  *   MC68881 MOVE WORD IN MEMORY OR IN Dn TO FP-REG. OPERATION
+00000000                           342  *   SYNTAX: MEMREGW INSTRUCTION,<EA>,FPN
+00000000                           343  *   WHERE: INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FADD)
+00000000                           344  *       <EA> = SOURCE ADDRESSING MOD
+00000000                           345  *       FPN = DESTINATION REGISTER
+00000000                           346  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           347  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX), XXX.W, XXX.L,
+00000000                           348  *               (D,PC), D(PC,IX)
+00000000                           349  *
+00000000                           350  ********************************************************************************
+00000000                           351  MEMREGW     MACRO
+00000000                           352          IFC '\4',''
+00000000                           353          MOVE.W  #$5000+(\3<<7)+\1,MC68881+COMMAND
+00000000                           354  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           355          BEQ.S   \@NULCA
+00000000                           356          MOVE.W  \2,MC68881+OPER
+00000000                           357  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           358          BMI.S   \@NULREL
+00000000                           359          ENDC
+00000000                           360          IFNC    '\4',''
+00000000                           361          MOVE.W  #$5000+(\4<<7)+\1,MC68881+COMMAND
+00000000                           362  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           363          BEQ.S   \@NULCA
+00000000                           364          MOVE.W  \2,\3,MC68881+OPER
+00000000                           365  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           366          BMI.S   \@NULREL
+00000000                           367          ENDC
+00000000                           368          ENDM
+00000000                           369  *****************************************************************************
+00000000                           370  *
+00000000                           371  *   MC68881 LONG WORD IN MEMORY OR IN Dn TO FP-REG. OPERATION
+00000000                           372  *   SYNTAX: MEMREGL INSTRUCTION,<EA>,FPN
+00000000                           373  *   WHERE: INSTRUCTION = FP INSTRUCTION NUEMONIC (I.E. FADD)
+00000000                           374  *       <EA> = SOURCE ADDRESSING MOD
+00000000                           375  *       FPN = DESTINATION REGISTER
+00000000                           376  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           377  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX), XXX.W, XXX.L,
+00000000                           378  *               (D,PC), D(PC,IX)
+00000000                           379  *
+00000000                           380  *******************************************************************************
+00000000                           381  MEMREGL     MACRO
+00000000                           382          IFC '\4',''
+00000000                           383          MOVE.W  #$4000+(\3<<7)+\1,MC68881+COMMAND
+00000000                           384  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           385          BEQ.S   \@NULCA
+00000000                           386          MOVE.L  \2,MC68881+OPER
+00000000                           387  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           388          BMI.S   \@NULREL
+00000000                           389          ENDC
+00000000                           390          IFNC    '\4',''
+00000000                           391          MOVE.W  #$4000+(\4<<7)+\1,MC68881+COMMAND
+00000000                           392  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           393          BEQ.S   \@NULCA
+00000000                           394          MOVE.L  \2,\3,MC68881+OPER
+00000000                           395  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           396          BMI.S   \@NULREL
+00000000                           397          ENDC
+00000000                           398          ENDM
+00000000                           399  *****************************************************************************
+00000000                           400  *
+00000000                           401  *   MC68881 SINGLE PRECISION VALUE MEMORY TO FP-REG. OPERATION
+00000000                           402  *   SYNTAX: MEMREGS INSTRUCTION,<EA>,FPN
+00000000                           403  *   WHERE: INSTRUCTION=FP INSTRUCTION NUEMONIC (I.E. FADD)
+00000000                           404  *       <EA>=SOURCE ADDRESSING MODE
+00000000                           405  *       FPN=DESTINATION REGISTER
+00000000                           406  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           407  *   VALID ADDRESSING MODES: DN, (AN)+, -(AN), D(AN), D(AN,IX)
+00000000                           408  *               XXX.W, XXX.L, (D,PC), D(PC,IX)
+00000000                           409  *
+00000000                           410  ******************************************************************************
+00000000                           411          
+00000000                           412  MEMREGS     MACRO
+00000000                           413          IFC '\4',''
+00000000                           414          MOVE.W  #$4400+(\3<<7)+1,MC68881+COMMAND
+00000000                           415  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           416          BEQ.S   \@NULCA
+00000000                           417          
+00000000                           418          MOVE.L  \2,MC68881+OPER
+00000000                           419  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           420          BMI.S   \@NULREL
+00000000                           421          ENDC
+00000000                           422          IFNC    '\4',''
+00000000                           423          MOVE.W  #$4400+(\4<<7)+\1,MC68881+COMMAND
+00000000                           424  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           425          BEQ.S   \@NULCA
+00000000                           426          
+00000000                           427          MOVE.L  \2,\3,MC68881+OPER
+00000000                           428  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           429          BMI.S   \@NULREL
+00000000                           430          ENDC
+00000000                           431          ENDM
+00000000                           432  *******************************************************************************
+00000000                           433  *
+00000000                           434  *   MC68881 DOUBLE PRECISION VALUE MEMORY TO FP-REG. OPERATION
+00000000                           435  *   SYNTAX: MEMREGD INSTRUCTION,<EA>,FPN
+00000000                           436  *   WHERE: INSTRUCTION=FP INSTRUCTION NUEMONIC (I.E. FADD)
+00000000                           437  *       <EA>=SOURCE ADDRESS REGISTER, SURROUNDED BY PARENTHESIS,
+00000000                           438  *       CONTAINING THE PREVIOUSLY ENTERED ADDRESSING MODE
+00000000                           439  *       (I.E. (AN)).
+00000000                           440  *       FPN=DESTINATION REGISTER
+00000000                           441  *       NO REGISTERS MODIFIED OR DESTROYED
+00000000                           442  *       VALID ADDRESSING MODES: (AN)
+00000000                           443  *
+00000000                           444  ******************************************************************************
+00000000                           445  MEMREGD     MACRO
+00000000                           446          MOVE.W  #$5400+#$0200+\1,MC68881+COMMAND
+00000000                           447  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           448          BEQ.S   \@NULCA
+00000000                           449          MOVE.L  \2,MC68881+OPER
+00000000                           450          MOVE.L  4\2,MC68881+OPER
+00000000                           451  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           452          BMI.S   \@NULREL
+00000000                           453          ENDM
+00000000                           454  *********************************************************************************
+00000000                           455  *
+00000000                           456  *   MC68881 EXTENDED PRECISION VALUE MEMORY TO FP-REG. OPERATION
+00000000                           457  *   SYNTAX: MEMREGX INSTRUCTION,<EA>,FPN
+00000000                           458  *   WHERE: INSTRUCTION=FP INSTRUCTION NUEMONIC (I.E. FADD)
+00000000                           459  *   <EA>=SOURCE ADDRESS REGISTER,SURROUNDED BY PARENTHESIS,
+00000000                           460  *       CONTAINING THE PREVIOUSLY ENTERED ADDRESSING MODE
+00000000                           461  *       (I.E. (AN)).
+00000000                           462  *   FPN=DESTINATION REGISTER
+00000000                           463  *   NOREGISTERS MODIFIED OR DESTROYED
+00000000                           464  *   VALID ADDRESSING MODES: (AN)
+00000000                           465  *
+00000000                           466  ******************************************************************************
+00000000                           467  MEMREGX     MACRO
+00000000                           468          MOVE.W  #$4800+(\3<<7)+\1,MC68881+COMMAND
+00000000                           469  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           470          BEQ.S   \@NULCA
+00000000                           471          MOVE.L  \2,MC68881+OPER
+00000000                           472          MOVE.L  4\2,MC68881+OPER
+00000000                           473          MOVE.L  8\2,MC68881+OPER
+00000000                           474  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           475          BMI.S   \@NULREL
+00000000                           476          ENDM
+00000000                           477  *****************************************************************************
+00000000                           478  *
+00000000                           479  *   MC68881 PACKED BCD VALUE MEMORY TO FP-REG. OPERATION
+00000000                           480  *   SYNTAX: MEMREGP INSTRUCTION,<EA>,FPN
+00000000                           481  *   WHERE: INSTRUCTION=FP INSTRUCTION NUEMONIC (I.E. FADD)
+00000000                           482  *       <EA>=SOURCE ADDRESS REGISTER, SURROUNDED BY PARENTHESIS,
+00000000                           483  *       CONTAINING THE PREVIOUSLY ENTERED ADDRESSING MODE
+00000000                           484  *       (I.E. (AN)).
+00000000                           485  *       FPN=DESTINATION REGISTER
+00000000                           486  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           487  *   VALID ADDRESSING MODES: (AN)
+00000000                           488  *
+00000000                           489  *****************************************************************************
+00000000                           490  MEMREGP     MACRO
+00000000                           491          MOVE.W  #$4C00+(\3<<7)+\1,MC68881+COMMAND
+00000000                           492  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           493          BEQ.S   \@NULCA
+00000000                           494          MOVE.L  \2,MC68881+OPER
+00000000                           495          MOVE.L  4\2,MC68881+OPER
+00000000                           496          MOVE.L  8\2,MC68881+OPER
+00000000                           497  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           498          BMI.S   \@NULREL
+00000000                           499          ENDM
+00000000                           500  ******************************************************************************
+00000000                           501  *
+00000000                           502  *   MC68881 FP-REG. TO FP-REG. OPERATION
+00000000                           503  *   SYNTAX: REGREG INSTRUCTION,FPM,FPN,FNQ
+00000000                           504  *   WHERE: INSTRUCTION=NUEMONIC FOR THE FP INSTRUCTION (I.E. FADD)
+00000000                           505  *       FPM=FP SOURCE REGISTER
+00000000                           506  *       FPN=FP DESTINATION REGISTER
+00000000                           507  *       FNQ=SECOND FP DESTINATION REGISTER FOR FSINCOS
+00000000                           508  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           509  *
+00000000                           510  *****************************************************************************
+00000000                           511  REGREG      MACRO
+00000000                           512          IFC '\1','FSINCOS'
+00000000                           513          MOVE.W  #(\2<<10)+(\4<<7)+\3+\1,MC68881+COMMAND
+00000000                           514  \@NULCA     TST.B   MC68881+RESPONSE
+00000000                           515          BMI.S   \@NULCA
+00000000                           516          ENDC
+00000000                           517          IFNC    '\1','FSINCOS'
+00000000                           518          MOVE.W  #(\2<<10)+(\3<<7)+\1,MC68881+COMMAND
+00000000                           519  \@NULCA     TST.B   MC68881+RESPONSE
+00000000                           520          BMI.S   \@NULCA
+00000000                           521          ENDC
+00000000                           522          ENDM
+00000000                           523  ******************************************************************************
+00000000                           524  *
+00000000                           525  *   MC68881 CONSTANT IN ROM TO FP-REG. OPERATION
+00000000                           526  *   SYNTAX: FMOVEROM CC,FPN
+00000000                           527  *   WHERE:  CC = MC68881 CONSTANT
+00000000                           528  *       $00 PI
+00000000                           529  *       $0B LOG10(2)
+00000000                           530  *       $0C E
+00000000                           531  *       $0D LOG2(E)
+00000000                           532  *       $0E LOG10(E)
+00000000                           533  *       $0F 0.0
+00000000                           534  *       $30 LOGN(2)
+00000000                           535  *       $31 LOGN(10)
+00000000                           536  *       $32 10^0
+00000000                           537  *       $33 10^1
+00000000                           538  *       $34 10^2
+00000000                           539  *       $35 10^4
+00000000                           540  *       $36 10^8
+00000000                           541  *       $37 10^16
+00000000                           542  *       $38 10^32
+00000000                           543  *       $39 10^64
+00000000                           544  *       $3A 10^128
+00000000                           545  *       $3B 10^256
+00000000                           546  *       $3C 10^512
+00000000                           547  *       $3D 10^1024
+00000000                           548  *       $3E 10^2048
+00000000                           549  *       $3F 10^4096
+00000000                           550  *       FPN=FP DESTINATION REGISTER
+00000000                           551  *       NO REGISTERS MODIFIED OR DESTROYED
+00000000                           552  *
+00000000                           553  ******************************************************************************
+00000000                           554          
+00000000                           555  FMOVEROM    MACRO
+00000000                           556          MOVE.W  #$5C00+(\2<<7)+\1,MC68881+COMMAND
+00000000                           557  \@NULCA     TST.B   MC68881+RESPONSE
+00000000                           558          BMI.S   \@NULCA
+00000000                           559          ENDM
+00000000                           560  *****************************************************************************
+00000000                           561  *
+00000000                           562  *   MC68881 CONDITIONAL BRANCH
+00000000                           563  *   SYNTAX: FBCC.<SIZE> CONDITION, ADDRESS
+00000000                           564  *   WHERE: <SIZE>=ALLOWABLE BRANCH SIZES
+00000000                           565  *       CONDITION=CC, THE FLOATING POINT CONDITION (I.E. GT)
+00000000                           566  *       ADDRESS=BRANCH ADDRESS
+00000000                           567  *   REGISTERS MODIFIED OR DESTROYED: D0
+00000000                           568  *
+00000000                           569  *****************************************************************************
+00000000                           570          
+00000000                           571  FBCC        MACRO
+00000000                           572          MOVE.W  #\1,MC68881+COND
+00000000                           573  \@NOPASS    MOVE.W  MC68881+RESPONSE,D0
+00000000                           574          BMI.S   \@NOPASS
+00000000                           575          BTST    #TFBIT,D0
+00000000                           576          BNE.\0  \2
+00000000                           577          ENDM
+00000000                           578  ****************************************************************************
+00000000                           579  *
+00000000                           580  *   MC68881 TEST FP CONDITION, DECREMENT, AND BRANCH
+00000000                           581  *   SYNTAX: FDBCC CONDITION, DN, ADDRESS
+00000000                           582  *   WHERE: CONDITION=CC, FLOATING POINT CONDITION
+00000000                           583  *       DN= MAIN PROCESSOR DATA REGISTER TO BE DECREMENTED
+00000000                           584  *       ADDRESS=BRANCH ADDRESS
+00000000                           585  *   REGISTERS MODIFIED OR DESTROYED D0
+00000000                           586  *
+00000000                           587  ***************************************************************************
+00000000                           588          
+00000000                           589  FDBCC       MACRO
+00000000                           590          MOVE.W  #\1,MC68881+COND
+00000000                           591  \@NOPASS    MOVE.W  MC68881+RESPONSE,D0
+00000000                           592          BMI.S   \@NOPASS
+00000000                           593          BTST    #TFBIT,D0
+00000000                           594          DBNE    \2,\3
+00000000                           595          ENDM
+00000000                           596  ******************************************************************************
+00000000                           597  *
+00000000                           598  *   MC68881 CONDITIONAL SET
+00000000                           599  *   SYNTAX: FSCC CONDITION,ADDRESS
+00000000                           600  *   WHERE: CONDITION=CC, FLOATING POINT CONDITION
+00000000                           601  *       ADDRESS=BRANCH ADDRESS
+00000000                           602  *   REGISTERS MODIFIED OR DESTROYED D0
+00000000                           603  *
+00000000                           604  ***************************************************************************
+00000000                           605          
+00000000                           606  FSCC        MACRO
+00000000                           607          MOVE.W  #\1,MC68881+COND
+00000000                           608  \@NOPASS    MOVE.W  MC68881+RESPONSE,D0
+00000000                           609          BMI.S   \@NOPASS
+00000000                           610          BTST    #TFBIT,D0
+00000000                           611          BNE \2
+00000000                           612          ENDM
+00000000                           613  ****************************************************************************************
+00000000                           614  *
+00000000                           615  *   MC68881 FP MOVE MULTIPLE COPROCESSOR REGISTERS TO MEMORY
+00000000                           616  *   SYNTAX: FMOVEMRM FPR0,FPR1,FPR2,FPR3,FPR4,FPR5,FPR6,FPR7,<EA>,PREDECREMENT
+00000000                           617  *   WHERE:  FPR0=(FP REG. #0) 1 IF SELECTED, 0 IF NOT
+00000000                           618  *       FPR1=(   "    #1) "     "
+00000000                           619  *       FPR2=(   "    #2) "     "
+00000000                           620  *       FPR3=(   "    #3) "     "
+00000000                           621  *       FPR4=(   "    #4) "     "
+00000000                           622  *       FPR5=(   "    #5) "     "
+00000000                           623  *       FPR6=(   "    #6) "     "
+00000000                           624  *       FPR7=(   "    #7) "     "
+00000000                           625  *       <EA>=DESTINATION ADDRESSING MODE
+00000000                           626  *       PREDECREMENT=Y (IF PREDECREMENT MODE IS BEING USED), OR
+00000000                           627  *                 N (IF OTHER MODE IS BEING USED)
+00000000                           628  *   REGISTERS MODIFIED OR DESTROYED: A0, D0, D1, D2, D3
+00000000                           629  *   VALID ADDRESSING MODES: AN, -(AN), D(AN), D(AN,IX)
+00000000                           630  *               XXX.W, XXX.L
+00000000                           631  *
+00000000                           632  *****************************************************************************
+00000000                           633  FMOVEMRM    MACRO
+00000000                           634          IFC '\A','Y'
+00000000                           635          MOVE.W  #$E000+%\8\7\6\5\4\3\2\1,MC68881+COMMAND
+00000000                           636  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           637          BEQ.S   \@NULCA
+00000000                           638          MOVEQ   #\1+\2+\3+\4+\5+\6+\7+\8-1,D3
+00000000                           639          TST.W   MC68881+REGSEL
+00000000                           640          MOVE.L  MC68881+OPER,A0
+00000000                           641  \@AGAIN     MOVE.L  (A0),D0
+00000000                           642          MOVE.L  (A0),D1
+00000000                           643          MOVE.L  (A0),D2
+00000000                           644          MOVEM.L D0-D2,\9
+00000000                           645          DBRA    D3,\@AGAIN
+00000000                           646  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           647          BMI.S   \@NULREL
+00000000                           648          ENDC
+00000000                           649          IFC '\A','N'
+00000000                           650          MOVE.W  #$F000+%\1\2\3\4\5\6\7\8,MC68881+COMMAND
+00000000                           651  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           652          BEQ.S   \@NULCA
+00000000                           653          MOVEQ.L #(\8+\7+\6+\5+\4+\3+\2+\1)*3-1,D0
+00000000                           654          TST.W   MC68881+REGSEL
+00000000                           655          LEA \9,A0
+00000000                           656  \@AGAIN     MOVE.L  MC68881+OPER,(A0)+
+00000000                           657          DBRA    D0,\@AGAIN
+00000000                           658  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           659          BMI.S   \@NULREL
+00000000                           660          ENDC
+00000000                           661          ENDM
+00000000                           662  ****************************************************************************************
+00000000                           663  *
+00000000                           664  *   MC68881 FP MOVE TO MULTIPLE COPROCESSOR REGISTERS FROM MEMORY
+00000000                           665  *   SYNTAX: FMOVEMMR <EA>,FPR0,FPR1,FPR2,FPR3,FPR4,FPR5,FPR6,FPR7,POSTINCREMENT
+00000000                           666  *   WHERE: <EA>=DESTINATION ADDRESSING MODE
+00000000                           667  *       FPR0=(FP REG. #0) 1 IF SELECTED, 0 IF NOT
+00000000                           668  *       FPR1=(   "    #1) "     "
+00000000                           669  *       FPR2=(   "    #2) "     "
+00000000                           670  *       FPR3=(   "    #3) "     "
+00000000                           671  *       FPR4=(   "    #4) "     "
+00000000                           672  *       FPR5=(   "    #5) "     "
+00000000                           673  *       FPR6=(   "    #6) "     "
+00000000                           674  *       FPR7=(   "    #7) "     "
+00000000                           675  *       POSTINCREMENT=Y (IF POST-INCREMENT MODE IS BEING USED)
+00000000                           676  *                 N (IF OTHER VALID MODE IS BEING USED)
+00000000                           677  *   REGISTERS MODIFIED OR DESTROYED: A0, D0
+00000000                           678  *   VALID ADDRESSING MODES: AN, (AN)+, D(AN), D(AN,IX)
+00000000                           679  *               XXX.W, XXX.L, (D,PC),D(PC,IX)
+00000000                           680  *
+00000000                           681  *****************************************************************************
+00000000                           682  FMOVEMMR    MACRO
+00000000                           683          MOVE.W  #$D000+%\2\3\4\5\6\7\8\9,MC68881+COMMAND
+00000000                           684  \@NULCA     CMPI    #$8900,MC68881+RESPONSE
+00000000                           685          BEQ.S   \@NULCA
+00000000                           686          MOVEQ.L #(\9+\8+\7+\6+\5+\4+\3+\2)*3-1,D0
+00000000                           687          TST.W   MC68881+REGSEL
+00000000                           688          IFC '\A','N'
+00000000                           689          LEA \1,A0
+00000000                           690  \@AGAIN     MOVE.L  (A0)+,MC68881+OPER
+00000000                           691          DBRA    D0,\@AGAIN
+00000000                           692  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           693          BMI.S   \@NULREL
+00000000                           694          ENDC
+00000000                           695          IFC '\A','Y'
+00000000                           696  \@AGAIN     MOVE.L  \1,MC68881+OPER
+00000000                           697          DBRA    D0,\@AGAIN
+00000000                           698  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           699          BMI.S   \@NULREL
+00000000                           700          ENDC
+00000000                           701          ENDM
+00000000                           702  
+00000000                           703  ****************************************************************************
+00000000                           704  *
+00000000                           705  *   MC68881 FP MOVE TO CONTROL, STATUS, OR INSTRUCTION ADDRESS REGISTER
+00000000                           706  *   SYNTAX: MOVINCSI <EA>,REGISTER
+00000000                           707  *   WHERE: <EA>=VALID SOURCE ADDRESSING MODE
+00000000                           708  *       REGISTER=CONTROL, STATUS, OR IADDRESS
+00000000                           709  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           710  *   VALID ADDRESSING MODES: DN, AN, (AN)+, -(AN), D(AN), D(AN,IX)
+00000000                           711  *               XXX.W, XXX.L, (D,PC), D(PC,IX)
+00000000                           712  *
+00000000                           713  ******************************************************************************
+00000000                           714  MOVINCSI    MACRO
+00000000                           715          IFC '\3',''
+00000000                           716          MOVE.W  #\2,MC68881+COMMAND
+00000000                           717  \@NULCA     CMPI.W  #$8900,MC68881+RESPONSE
+00000000                           718          BEQ.S   \@NULCA
+00000000                           719          MOVE.L  \1,MC68881+OPER
+00000000                           720  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           721          BMI.S   \@NULREL
+00000000                           722          ENDC
+00000000                           723          IFNC    '\3',''
+00000000                           724          MOVE.W  #\3,MC68881+COMMAND
+00000000                           725  \@NULCA     CMPI.W  #$8900,MC68881+RESPONSE
+00000000                           726          BEQ.S   \@NULCA
+00000000                           727          MOVE.L  \1,\2,MC68881+OPER
+00000000                           728  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           729          BMI.S   \@NULREL
+00000000                           730          ENDC
+00000000                           731          ENDM
+00000000                           732          
+00000000                           733  **************************************************************************
+00000000                           734  *
+00000000                           735  *   MC68881 FP MOVE FROM CONTROL/STSTUS/INSTRUCTION ADDRESS REGISTER
+00000000                           736  *   SYNTAX: MOVOUCSI REGISTER,<EA>
+00000000                           737  *   WHERE: REGISTER=CONTROL, STATUS, OR IADDRESS
+00000000                           738  *       <EA>=VALID SOURCE ADDRESSING MODE
+00000000                           739  *   NO REGISTERS MODIFIED OR DESTROYED      
+00000000                           740  *   VALID ADDRESSING MODES: DN, AN, (AN)+, -(AN), D(AN), D(AN,IX)
+00000000                           741  *               XXX.W, XXX.L, (D,PC), D(PC,IX)
+00000000                           742  *
+00000000                           743  ***************************************************************************
+00000000                           744  
+00000000                           745  MOVOUCSI    MACRO
+00000000                           746          IFC '\3',''
+00000000                           747          MOVE.W  #\1+$2000,MC68881+COMMAND
+00000000                           748  \@NULCA     CMPI.W  #$8900,MC68881+RESPONSE
+00000000                           749          BEQ.S   \@NULCA
+00000000                           750          MOVE.L  MC68881+OPER,\2
+00000000                           751  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           752          BMI.S   \@NULREL
+00000000                           753          ENDC
+00000000                           754          IFNC    '\3',''
+00000000                           755          MOVE.W  #\1+$2000,MC68881+COMMAND
+00000000                           756  \@NULCA     CMPI.W  #$8900,MC68881+RESPONSE
+00000000                           757          BEQ.S   \@NULCA
+00000000                           758          MOVE.L  MC68881+OPER,\2,\3
+00000000                           759  \@NULREL    TST.B   MC68881+RESPONSE
+00000000                           760          BMI.S   \@NULREL
+00000000                           761          ENDC
+00000000                           762          ENDM
+00000000                           763  *****************************************************************************
+00000000                           764  *
+00000000                           765  *   MC68881 FSAVE THE INTERNAL OF THE MACHINE
+00000000                           766  *   THIS IS A PRIVILEDGED INSTRUCTION WHICH IS GENERALLY ONLY USED
+00000000                           767  *   IN THE OPERATING SYSTEM FOR CONTEXT SWITCHING!
+00000000                           768  *   SYNTAX: FSAVEST <EA>
+00000000                           769  *   WHERE: <EA>=PREDECREMENT MODE -(AN)
+00000000                           770  *   REGISTERS MODIFIED OR DESTROYED A0,D0,D1
+00000000                           771  *   VALID ADDRESSING MODE -(AN)
+00000000                           772  *
+00000000                           773  ******************************************************************************
+00000000                           774          
+00000000                           775  FSAVEST     MACRO
+00000000                           776  \@START     MOVE.W  MC68881+SAVE,D0
+00000000                           777          MOVE.W  D0,D1
+00000000                           778          ANDI.W  #$FF00,D1
+00000000                           779          BEQ.S   \@NULL
+00000000                           780          CMPI.W  #$0100,D1
+00000000                           781          BEQ.S   \@START
+00000000                           782          LEA MC68881+OPER,A0
+00000000                           783          MOVE.B  D0,D1
+00000000                           784          LSR.B   #2,D1
+00000000                           785          EXT.W   D1
+00000000                           786          SUBQ.W  #1,D1
+00000000                           787  \@LOAD      MOVE.L  (A0),\1
+00000000                           788          DBRA    D1,\@LOAD
+00000000                           789  \@NULL      SWAP    D0
+00000000                           790          MOVE.L  D0,\1
+00000000                           791          ENDM
+00000000                           792          
+00000000                           793  
+00000000                           794          
+00000000                           795          
+00000000                           796  
+00000000                           797  *******************************************************************************
+00000000                           798  *
+00000000                           799  *   MC68881 FNOPP COMMAND
+00000000                           800  *
+00000000                           801  *   SYNTAX: FNOPP
+00000000                           802  *
+00000000                           803  *   NO REGISTERS MODIFIED OR DESTROYED
+00000000                           804  *
+00000000                           805  *****************************************************************************
+00000000                           806  FNOPP       MACRO
+00000000                           807          MOVE.W  #$0000,MC68881+COND
+00000000                           808  \@NOPAS     TST.B   MC68881+RESPONSE
+00000000                           809          BMI.S   \@NOPAS
+00000000                           810          ENDM
+00000000                           811  *****************************************************************************       
+00000000                           812  *
+00000000                           813  *   MC68881 FRESTORE OF THE INTERNAL OF THE MACHINE
+00000000                           814  *   THIS IS A PRIVILEDGED INSTRUCTION WHICH IS GENERALLY ONLY USED
+00000000                           815  *   IN THE OPERATING SYSTEM FOR CONTEXT SWITCHING!
+00000000                           816  *   SYNTAX: FRESTRST <EA>
+00000000                           817  *   WHERE: <EA>=POSTINCREMENT MODE (AN)+
+00000000                           818  *   REGISTERS MODIFIED OR DESTROYED A0,D0,D1
+00000000                           819  *   VALID ADDRESSING MODES: (AN)+
+00000000                           820  *
+00000000                           821  *****************************************************************************
+00000000                           822  
+00000000                           823  FRESTRST    MACRO
+00000000                           824          MOVE.L  \1,D0
+00000000                           825          SWAP    D0
+00000000                           826          MOVE.W  D0,MC68881+RESTORE
+00000000                           827          MOVE.W  MC68881+RESTORE,D0
+00000000                           828          MOVE.W  D0,D1
+00000000                           829          ANDI.W  #$FF00,D1
+00000000                           830          BEQ.S   \@NULREL
+00000000                           831          LEA MC68881+OPER,A0
+00000000                           832          MOVE.B  D0,D1
+00000000                           833          LSR.B   #2,D1
+00000000                           834          EXT.W   D1
+00000000                           835          SUBQ.W  #1,D1
+00000000                           836  \@LOAD      MOVE.L  \1,(A0)
+00000000                           837          DBRA    D1,\@LOAD
+00000000                           838  \@NULREL    EQU *
+00000000                           839          ENDM
+00000000                           840  ******************************************************************************
+00000000                           841          
+00004C00                           842          ORG $4C00       ;EXAMPLE PROGRAM
+00004C00  4E71                     843  START:      NOP
+00004C02  123C 0018                844          MOVE.B    #24,D1
+00004C06  4E40                     845          TRAP      #0
+00004C08  43F8 4000                846          LEA.L     $4000,A1
+00004C0C                           847m         MEMREGP   FMOVE,(A1),FP1
+00004C3C  123C 0018                848          MOVE.B    #24,D1
+00004C40  4E40                     849          TRAP      #0
+00004C42  43F8 4000                850          LEA.L     $4000,A1
+00004C46                           851m         MEMREGP   FMOVE,(A1),FP2
+00004C76                           852m         REGREG    FADD,FP1,FP2
+00004C86                           853m         REGMEML   FMOVE,FP2,D0
+00004CA6  4E71                     854          NOP
+00004CA8  4E4E                     855          TRAP    #14
+00004CAA  4E4F                     856          TRAP    #15
+00004CAC                           857  
+00004CAC                           858  
+00004CAC                           859          END START       ; last line of source   
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+COMMAND             A
+COND                E
+CONTROL             9000
+EQ                  1
+F                   0
+FABS                18
+FACOS               1C
+FADD                22
+FASIN               C
+FATAN               A
+FATANH              D
+FBCC                14B5
+FCMP                38
+FCOS                1D
+FCOSH               19
+FDBCC               152E
+FDIV                20
+FETOX               10
+FETOXM1             8
+FGETEXP             1E
+FGETMAN             1F
+FINT                1
+FLOG10              15
+FLOG2               16
+FLOGN               14
+FLOGNP1             6
+FMOD                21
+FMOVE               0
+FMOVEMMR            18D8
+FMOVEMRM            161E
+FMOVEROM            144F
+FMUL                23
+FNEG                1A
+FNOPP               1ED1
+FP0                 0
+FP1                 1
+FP2                 2
+FP3                 3
+FP4                 4
+FP5                 5
+FP6                 6
+FP7                 7
+FREM                25
+FRESTRST            1F29
+FSAVEST             1DB2
+FSCALE              26
+FSCC                15A8
+FSGLDIV             24
+FSGLMUL             27
+FSIN                E
+FSINCOS             30
+FSINH               2
+FSQRT               4
+FSUB                28
+FTAN                F
+FTANH               9
+FTENTOX             12
+FTST                3A
+FTWOTOX             11
+GE                  13
+GL                  16
+GLE                 17
+GT                  12
+IADDRESS            8400
+LE                  15
+LT                  14
+MC68881             80000
+MEMREGB             836
+MEMREGD             1094
+MEMREGL             D55
+MEMREGP             1256
+MEMREGS             EF1
+MEMREGW             BB9
+MEMREGX             1167
+MOVINCSI            1A9E
+MOVOUCSI            1C22
+NEQ                 E
+NGE                 1C
+NGL                 19
+NGLE                18
+NGT                 1D
+NLE                 1A
+NLT                 1B
+OGE                 3
+OGL                 6
+OGT                 2
+OLE                 5
+OLT                 4
+OPER                10
+OR                  7
+REGMEMB             4D6
+REGMEMD             673
+REGMEML             19C
+REGMEMW             339
+REGMEMX             747
+REGMENS             0
+REGREG              1345
+REGSEL              14
+RESPONSE            0
+RESTORE             6
+SAVE                4
+SEQ                 11
+SF                  10
+SNEQ                1E
+ST                  1F
+START               4C00
+STATUS              8800
+T                   F
+TFBIT               0
+UEQ                 9
+UGE                 B
+UGT                 A
+ULE                 D
+ULT                 C
+UN                  8
+_1NULCA             4C14
+_1NULREL            4C34
+_2NULCA             4C4E
+_2NULREL            4C6E
+_3NULCA             4C7E
+_4NULCA             4C8E
+_4NULREL            4C9E
