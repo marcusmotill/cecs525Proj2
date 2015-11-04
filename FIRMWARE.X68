@@ -793,7 +793,7 @@ FTRAP 	EQU *
 		ADD.L 	  #6,D0 		  Calculate address of next instruction
 		MOVE.L 	  D0,2(A7) 		  Update PC on system stack for FMOVE instruction
         MOVE.L 	  (A0),D0 		  Get FPU opcode/command.
-		AND.L 	  #$380000,D0 	  Mask opcode/command to get effective address mode.
+		AND.L 	  #$00380000,D0   Mask opcode/command to get effective address mode.
 	    CMP.L 	  #0,D0 	      What is the addressing mode used in the FPU instruction?
         BEQ 	  RTOR 			  Is it Dn or FPn register mode?
 		MOVE.L 	  (A0),D0 		  Must be An or (An) mode
@@ -820,15 +820,13 @@ NULREL1	TST.B	MC68881+RESPONSE
 		BMI.S	NULREL1
 		RTE
 		
-RTOR    LEA.L   TEST,A4    
-        BSR     PSTRING
-        MOVE.W	D0, MC68881+COMMAND
-NULCA2	TST.B	MC68881+RESPONSE
+RTOR    MOVE.L  2(A7),D0
+        SUB.L   #2,D0
+        MOVE.L  D0,2(A7)
+        MOVE.L 	(A0),D0 		        move command back into D0
+        MOVE.W	D0, MC68881+COMMAND     
+NULCA2	TST.B	MC68881+RESPONSE    
 		BMI.S	NULCA2
-		
-		MOVE.L 	2(A7),D0 		  Get PC from system stack.
-		ADD.L   #4,D0             Calculate address of next instruction
-		MOVE.L  D0,2(A7)          Update PC on system stack for FADD instruction
 		RTE
 
 ************************************************************************* 
@@ -1036,9 +1034,9 @@ BCDtoA	EQU	*
 		CMP.W	#$7FFF,D0
 		BNE	CONVERT
 		BSR	NEWLINE
-		*LEA.L	$4000,A4
-		*BSR	PSTRING
-		*BSR	NEWLINE
+		LEA.L	$4000,A4
+		BSR	PSTRING
+		BSR	NEWLINE
 		RTS	
 CONVERT	MOVE.B	$4000,D0
 		AND.B	#$C0,D0
@@ -1539,6 +1537,7 @@ DCB4     DC.B    'AUX_OUT '
 *    18+S ->   | Pointer to next DCB | 
 * 
          END RESET 
+
 
 
 

@@ -1,40 +1,21 @@
-68000 MACRO ASSEMBLER   Version 5.00   (c) 1992-2005 Peter J.Fondse
+680x0 MACRO ASSEMBLER   Version 5.00   (c) 1992-2005 Peter J. Fondse
 
-Date: 30 Oct 2015      Time: 15:59:37          Source: C:\USERS\STUDENT\DESKTOP\DAVID\PART4.ASM
+Date: 02 Nov 2015      Time: 17:52:34          Source: X:\SCHOOL\CECS\525 - MICROCOMPUTER DESIGN\PROJECT 2\CECS525PROJ2\PART4.SRC
 
                        1          section   code
 00004C00               2   		ORG	$4C00		;EXAMPLE PROGRAM
 00004C00  4E71         3   START:     NOP
-                       4   
-00004C02  123C 0018    5   	MOVE.B    #24,D1
-00004C06  4E40         6   	TRAP      #0
-00004C08  F238 4C00    7   	FMOVE.P   $4000,FP0
+00004C02  123C 0018    4   	MOVE.B    #24,D1
+00004C06  4E40         5   	TRAP      #0
+00004C08  F238 4C80    6   	FMOVE.P   $4000,FP1
 00004C0C  4000      
-********  **** ****  Warning: Floating point processor required
-00004C0E  21FC 0000    8   	MOVE.L    #0,$4000
-00004C12  0000 4000 
-00004C16  21FC 0000    9   	MOVE.L    #0,$4004
-00004C1A  0000 4004 
-00004C1E  21FC 0000   10   	MOVE.L    #0,$4008
-00004C22  0000 4008 
-                      11   
-                      12   	*MOVE.B    #24,D1
-                      13   	*TRAP      #0
-                      14   	*FMOVE.P   $4000,FP1
-                      15   
-                      16            *FADD      FP1,FP0
-                      17   
-00004C26  F238 6C00   18            FMOVE.P   FP0,$4000
-00004C2A  4000      
-                      19   
-00004C2C  4E4F        20   	TRAP	  #15
-          0000 4C00   21   		END	START		; last line of source
+********  **** ****  Warning: Floating point emulation or coprocessor required
+00004C0E  F200 0422    7              FADD      FP1,FP0
+00004C12  F238 6C00    8              FMOVE.P   FP0,$4000
+00004C16  4000      
+00004C18  4E71         9   	NOP
+00004C1A  4E4E        10   	TRAP	#14
+00004C1C  4E4F        11   	TRAP	#15
+          0000 4C00   12   		END	START		; last line of source
 
 Assembly errors: 0, warnings: 1
-
-
-SYMBOL TABLE
-
-Symbol        Value        
-----------------------     
-START         00004C00     

@@ -1,6 +1,6 @@
 00001000 Starting Address
-Assembler used: EASy68K Editor/Assembler v5.15.02
-Created On: 10/30/2015 4:10:39 PM
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 11/2/15 6:11:03 PM
 
 00000000                             1  *        TSBUG2 - 68000 monitor - version of 05 January 2010 
 00000000                             2  
@@ -792,48 +792,48 @@ Created On: 10/30/2015 4:10:39 PM
 0000161E                           788  
 0000161E                           789  *************************************************************************
 0000161E  =0000161E                790  FTRAP   EQU *
-0000161E  202F 0002                791          MOVE.L    2(A7),D0        Get PC from system stack.
+0000161E  202F 0002                791          MOVE.L  2(A7),D0          Get PC from system stack.
 00001622  2040                     792          MOVEA.L   D0,A0           COPY to A0 to become an address for later use.
-00001624  5C80                     793          ADD.L     #6,D0           Calculate address of next instruction
-00001626  2F40 0002                794          MOVE.L    D0,2(A7)        Update PC on system stack for FMOVE instruction
-0000162A  2010                     795          MOVE.L    (A0),D0         Get FPU opcode/command.
-0000162C  C0BC 00380000            796          AND.L     #$380000,D0     Mask opcode/command to get effective address mode.
-00001632  B0BC 00000000            797          CMP.L     #0,D0           What is the addressing mode used in the FPU instruction?
-00001638  6700 0070                798          BEQ       RTOR            Is it Dn or FPn register mode?
-0000163C  2010                     799          MOVE.L    (A0),D0         Must be An or (An) mode
-0000163E  0800 000D                800          BTST      #13,D0          Test bit 13 or dir of the FPU command word
-00001642  6600 0034                801          BNE       RTOM            Is it register to memory operation or memory to register operation        
+00001624  5C80                     793            ADD.L        #6,D0          Calculate address of next instruction
+00001626  2F40 0002                794            MOVE.L    D0,2(A7)          Update PC on system stack for FMOVE instruction
+0000162A  2010                     795          MOVE.L  (A0),D0           Get FPU opcode/command.
+0000162C  C0BC 00380000            796            AND.L        #$380000,D0    Mask opcode/command to get effective address mode.
+00001632  B0BC 00000000            797           CMP.L     #0,D0          What is the addressing mode used in the FPU instruction?
+00001638  6700 0070                798          BEQ        RTOR               Is it Dn or FPn register mode?
+0000163C  2010                     799            MOVE.L    (A0),D0           Must be An or (An) mode
+0000163E  0800 000D                800            BTST     #13,D0         Test bit 13 or dir of the FPU command word
+00001642  6600 0034                801            BNE      RTOM               Is it register to memory operation or memory to register operation        
 00001646                           802          
-00001646  33C0 0008000A            803  MTOR    MOVE.W    D0, MC68881+COMMAND       Move command word into command reg.
-0000164C  0C79 8900 00080000       804  NULCA   CMPI      #$8900, MC68881+RESPONSE  Test for response from FPU
-00001654  67F6                     805          BEQ.S     NULCA                     Keep testing
-00001656  23F8 4000 00080010       806          MOVE.L    $4000, MC68881+OPER       Move the first 4 Bytes into operand reg.
-0000165E  23F8 4004 00080010       807          MOVE.L    $4004, MC68881+OPER       Move the second 4 Bytes
-00001666  23F8 4008 00080010       808          MOVE.L    $4008, MC68881+OPER       Move the third 4 Bytes
-0000166E  4A39 00080000            809  NULREL  TST.B     MC68881+RESPONSE
-00001674  6BF8                     810          BMI.S     NULREL
-00001676  4E73                     811          RTE
+00001646  33C0 0008000A            803  MTOR    MOVE.W     D0, MC68881+COMMAND       Move command word into command reg.
+0000164C  0C79 8900 00080000       804  NULCA     CMPI     #$8900, MC68881+RESPONSE  Test for response from FPU
+00001654  67F6                     805            BEQ.S    NULCA                     Keep testing
+00001656  23F8 4000 00080010       806            MOVE.L       $4000, MC68881+OPER       Move the first 4 Bytes into operand reg.
+0000165E  23F8 4004 00080010       807            MOVE.L       $4004, MC68881+OPER       Move the second 4 Bytes
+00001666  23F8 4008 00080010       808            MOVE.L       $4008, MC68881+OPER       Move the third 4 Bytes
+0000166E  4A39 00080000            809  NULREL  TST.B      MC68881+RESPONSE
+00001674  6BF8                     810            BMI.S    NULREL
+00001676  4E73                     811            RTE
 00001678                           812          
 00001678  33C0 0008000A            813  RTOM    MOVE.W  D0, MC68881+COMMAND
-0000167E  0C79 8900 00080000       814  NULCA1  CMPI    #$8900, MC68881+RESPONSE
-00001686  67F6                     815          BEQ.S   NULCA1
-00001688  21F9 00080010 4000       816          MOVE.L  MC68881+OPER, $4000
-00001690  21F9 00080010 4004       817          MOVE.L  MC68881+OPER, $4004
-00001698  21F9 00080010 4008       818          MOVE.L  MC68881+OPER, $4008
-000016A0  4A39 00080000            819  NULREL1 TST.B   MC68881+RESPONSE
-000016A6  6BF8                     820          BMI.S   NULREL1
-000016A8  4E73                     821          RTE
-000016AA                           822          
-000016AA  49F9 00002079            823  RTOR    LEA.L   TEST,A4    
-000016B0  6100 F9C8                824          BSR     PSTRING
-000016B4  33C0 0008000A            825          MOVE.W  D0, MC68881+COMMAND
-000016BA  4A39 00080000            826  NULCA2  TST.B   MC68881+RESPONSE
-000016C0  6BF8                     827          BMI.S   NULCA2
-000016C2                           828          
-000016C2  202F 0002                829          MOVE.L  2(A7),D0          Get PC from system stack.
-000016C6  5880                     830          ADD.L   #4,D0             Calculate address of next instruction
-000016C8  2F40 0002                831          MOVE.L  D0,2(A7)          Update PC on system stack for FADD instruction
-000016CC  4E73                     832          RTE
+0000167E  0C79 8900 00080000       814  NULCA1  CMPI       #$8900, MC68881+RESPONSE
+00001686  67F6                     815            BEQ.S    NULCA1
+00001688  21F9 00080010 4000       816            MOVE.L       MC68881+OPER, $4000
+00001690  21F9 00080010 4004       817            MOVE.L    MC68881+OPER, $4004
+00001698  21F9 00080010 4008       818            MOVE.L    MC68881+OPER, $4008
+000016A0                           819  NULREL1  
+000016A0  4A39 00080000            820          TST.B      MC68881+RESPONSE
+000016A6  6BF8                     821            BMI.S    NULREL1
+000016A8  4E73                     822            RTE
+000016AA                           823          
+000016AA  49F9 00002079            824  RTOR    LEA.L     TEST,A4    
+000016B0  6100 F9C8                825          BSR       PSTRING
+000016B4  222F 0002                826          MOVE.L    2(A7),D1          Get PC from system stack.
+000016B8  5881                     827          ADD.L     #4,D1             Calculate address of next instruction
+000016BA  2F41 0002                828          MOVE.L    D1,2(A7)          Update PC on system stack for FADD instruction
+000016BE  33C0 0008000A            829          MOVE.W     D0, MC68881+COMMAND   
+000016C4  4A39 00080000            830  NULCA2  TST.B      MC68881+RESPONSE
+000016CA  6BF8                     831            BMI.S    NULCA2
+000016CC  4E73                     832            RTE
 000016CE                           833  
 000016CE                           834  ************************************************************************* 
 000016CE                           835  * 
@@ -1747,7 +1747,7 @@ NO_EXT              1040
 NUL                 0
 NULCA               164C
 NULCA1              167E
-NULCA2              16BA
+NULCA2              16C4
 NULREL              166E
 NULREL1             16A0
 NUM3                1858
