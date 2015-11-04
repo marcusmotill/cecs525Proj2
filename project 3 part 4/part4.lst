@@ -1,0 +1,108 @@
+68000 MACRO ASSEMBLER   Version 5.00   (c) 1992-2005 Peter J.Fondse
+
+Date: 03 Nov 2015      Time: 19:56:49          Source: C:\USERS\STUDENT\DESKTOP\DAVID\PART4.ASM
+
+                       1          section   code
+00004C00               2   		ORG	$4C00		;EXAMPLE PROGRAM
+00004C00  4E71         3   START:     NOP
+                       4   
+00004C02  49F9 0000    5            LEA.L     ADDITION,A4
+00004C06  4CA8      
+00004C08  123C 0004    6            MOVE.B    #4,D1
+00004C0C  4E40         7   	TRAP      #0
+                       8   
+00004C0E  123C 0002    9            MOVE.B    #2,D1
+00004C12  4E40        10   	TRAP      #0
+                      11   
+00004C14  49F9 0000   12   	LEA.L     FIRSTNUM,A4
+00004C18  4CC3      
+00004C1A  123C 0004   13            MOVE.B    #4,D1
+00004C1E  4E40        14   	TRAP      #0
+                      15   
+00004C20  123C 0018   16   	MOVE.B    #24,D1
+00004C24  4E40        17   	TRAP      #0
+00004C26  F238 4C00   18   	FMOVE.P   $4000,FP0
+00004C2A  4000      
+********  **** ****  Warning: Floating point processor required
+                      19   
+00004C2C  49F9 0000   20   	LEA.L     SECONDNUM,A4
+00004C30  4CD3      
+00004C32  123C 0004   21            MOVE.B    #4,D1
+00004C36  4E40        22   	TRAP      #0
+                      23   
+00004C38  123C 0018   24   	MOVE.B    #24,D1
+00004C3C  4E40        25   	TRAP      #0
+00004C3E  F238 4C80   26   	FMOVE.P   $4000,FP1
+00004C42  4000      
+                      27   
+00004C44  F200 0422   28            FADD      FP1,FP0
+                      29   
+00004C48  F238 6C00   30            FMOVE.P   FP0,$4000
+00004C4C  4000      
+00004C4E  123C 0019   31            MOVE.B    #25,D1
+00004C52  4E40        32   	TRAP      #0
+                      33   
+00004C54  49F9 0000   34            LEA.L     SUBTRACT,A4
+00004C58  4CB4      
+00004C5A  123C 0004   35            MOVE.B    #4,D1
+00004C5E  4E40        36   	TRAP      #0
+                      37   
+00004C60  123C 0002   38            MOVE.B    #2,D1
+00004C64  4E40        39   	TRAP      #0
+                      40   
+00004C66  49F9 0000   41   	LEA.L     FIRSTNUM,A4
+00004C6A  4CC3      
+00004C6C  123C 0004   42            MOVE.B    #4,D1
+00004C70  4E40        43   	TRAP      #0
+                      44   
+00004C72  123C 0018   45   	MOVE.B    #24,D1
+00004C76  4E40        46   	TRAP      #0
+00004C78  F238 4C00   47   	FMOVE.P   $4000,FP0
+00004C7C  4000      
+                      48   
+00004C7E  49F9 0000   49   	LEA.L     SECONDNUM,A4
+00004C82  4CD3      
+00004C84  123C 0004   50            MOVE.B    #4,D1
+00004C88  4E40        51   	TRAP      #0
+                      52   
+00004C8A  123C 0018   53   	MOVE.B    #24,D1
+00004C8E  4E40        54   	TRAP      #0
+00004C90  F238 4C80   55   	FMOVE.P   $4000,FP1
+00004C94  4000      
+                      56   
+00004C96  F200 0428   57            FSUB      FP1,FP0
+                      58   
+00004C9A  F238 6C00   59            FMOVE.P   FP0,$4000
+00004C9E  4000      
+00004CA0  123C 0019   60            MOVE.B    #25,D1
+00004CA4  4E40        61   	TRAP      #0
+00004CA6  4E4F        62   	TRAP	  #15
+                      63   
+                      64   
+00004CA8  4144 4449   65   ADDITION   DC.B     'ADDITION: ',0,0
+00004CAC  5449 4F4E 
+00004CB0  3A20 0000 
+00004CB4  5355 4254   66   SUBTRACT   DC.B     'SUBTRACTION: ',0,0
+00004CB8  5241 4354 
+00004CBC  494F 4E3A 
+00004CC0  2000 00   
+00004CC3  4649 5253   67   FIRSTNUM   DC.B     'FIRST NUMBER: ',0,0
+00004CC7  5420 4E55 
+00004CCB  4D42 4552 
+00004CCF  3A20 0000 
+00004CD3  5345 434F   68   SECONDNUM  DC.B     'SECOND NUMBER: ',0,0
+00004CD7  4E44 204E 
+00004CDB  554D 4245 
+00004CDF  523A 2000 
+00004CE3  00        
+          0000 4C00   69   		END	START		; last line of source
+
+Assembly errors: 0, warnings: 1
+
+
+SYMBOL TABLE
+
+Symbol        Value        Symbol        Value        Symbol        Value
+----------------------     ----------------------     ----------------------
+ADDITION      00004CA8     FIRSTNUM      00004CC3     SECONDNUM     00004CD3     
+START         00004C00     SUBTRACT      00004CB4     

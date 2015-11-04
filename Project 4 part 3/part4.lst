@@ -1,0 +1,77 @@
+68000 MACRO ASSEMBLER   Version 5.00   (c) 1992-2005 Peter J.Fondse
+
+Date: 03 Nov 2015      Time: 20:13:02          Source: C:\USERS\STUDENT\DESKTOP\DAVID\PART4.ASM
+
+                       1          section   code
+00004C00               2   		ORG	$4C00		;EXAMPLE PROGRAM
+00004C00  4E71         3   START:     NOP
+                       4   
+00004C02  49F9 0000    5            LEA.L     ADDITION,A4
+00004C06  4C70      
+00004C08  123C 0004    6            MOVE.B    #4,D1
+00004C0C  4E40         7   	TRAP      #0
+                       8   
+00004C0E  123C 0002    9            MOVE.B    #2,D1
+00004C12  4E40        10   	TRAP      #0
+                      11   
+00004C14  49F9 0000   12   	LEA.L     FIRSTNUM,A4
+00004C18  4C8B      
+00004C1A  123C 0004   13            MOVE.B    #4,D1
+00004C1E  4E40        14   	TRAP      #0
+                      15   
+00004C20  123C 0018   16   	MOVE.B    #24,D1
+00004C24  4E40        17   	TRAP      #0
+00004C26  F238 4C00   18   	FMOVE.P   $4000,FP0
+00004C2A  4000      
+********  **** ****  Warning: Floating point processor required
+00004C2C  F238 4C80   19   	FMOVE.P   $4000,FP1
+00004C30  4000      
+                      20   
+00004C32  F200 0423   21            FMUL      FP1,FP0
+00004C36  F200 0423   22            FMUL      FP1,FP0
+                      23   
+00004C3A  F23C 4C80   24            FMOVE.P   #3.14159, FP1
+00004C3E  0000 0003 
+00004C42  1415 9000 
+00004C46  0000 0000 
+00004C4A  F23C 4D00   25            FMOVE.P   #1.33, FP2
+00004C4E  0000 0001 
+00004C52  3300 0000 
+00004C56  0000 0000 
+00004C5A  F200 0523   26            FMUL      FP1,FP2
+00004C5E  F200 0823   27            FMUL      FP2,FP0
+                      28   
+00004C62  F238 6C00   29            FMOVE.P   FP0,$4000
+00004C66  4000      
+00004C68  123C 0019   30            MOVE.B    #25,D1
+00004C6C  4E40        31   	TRAP      #0
+00004C6E  4E4F        32   	TRAP	  #15
+                      33   
+                      34   
+00004C70  4144 4449   35   ADDITION   DC.B     'ADDITION: ',0,0
+00004C74  5449 4F4E 
+00004C78  3A20 0000 
+00004C7C  5355 4254   36   SUBTRACT   DC.B     'SUBTRACTION: ',0,0
+00004C80  5241 4354 
+00004C84  494F 4E3A 
+00004C88  2000 00   
+00004C8B  4649 5253   37   FIRSTNUM   DC.B     'FIRST NUMBER: ',0,0
+00004C8F  5420 4E55 
+00004C93  4D42 4552 
+00004C97  3A20 0000 
+00004C9B  5345 434F   38   SECONDNUM  DC.B     'SECOND NUMBER: ',0,0
+00004C9F  4E44 204E 
+00004CA3  554D 4245 
+00004CA7  523A 2000 
+00004CAB  00        
+          0000 4C00   39   		END	START		; last line of source
+
+Assembly errors: 0, warnings: 1
+
+
+SYMBOL TABLE
+
+Symbol        Value        Symbol        Value        Symbol        Value
+----------------------     ----------------------     ----------------------
+ADDITION      00004C70     FIRSTNUM      00004C8B     SECONDNUM     00004C9B     
+START         00004C00     SUBTRACT      00004C7C     
